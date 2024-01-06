@@ -66,13 +66,14 @@ def IllustrationB():
     plt.ylabel('B, G')
 
 
-def Track(P0, B0, pos0, vel0, field, t_start, t_end, plot, Misiriotis,
+def Track(P0, B0, pos0, vel0, field, t_start, t_end, plotOrbit, realisticMap,
           v=None, n=None):
     """ Returns arrays t, P, B, v, n, evolutionary stages """
     
     if not v or not n:
         """ Initial parameter arrays """
-        t, v, n, orbPeriod = Trajectory(pos0, vel0, t_end, plot, Misiriotis)
+        t, v, n, orbPeriod = Trajectory(pos0, vel0, t_end, plotOrbit,
+                                        realisticMap)
 
         v = sp.interpolate.interp1d(t, v, bounds_error=False, kind='linear',
                                     fill_value=np.mean(v))
@@ -80,9 +81,9 @@ def Track(P0, B0, pos0, vel0, field, t_start, t_end, plot, Misiriotis,
                                     fill_value=1e-6)
 
     else:
-        t, v_1, n_1, orbPeriod = Trajectory(pos0, vel0, t_end, plot,
-                                            Misiriotis)
-    max_step = orbPeriod / 12
+        t, v_1, n_1, orbPeriod = Trajectory(pos0, vel0, t_end, plotOrbit,
+                                            realisticMap)
+    max_step = orbPeriod / 12 # !!! redo
     print('max_step = {:.3e} s'.format(max_step))
     
     """ Filling space between t[0]=0 and t[1]~1e13 s """
@@ -111,6 +112,7 @@ def Track(P0, B0, pos0, vel0, field, t_start, t_end, plot, Misiriotis,
     T = np.array([t_start])
     P = np.array([P0])
     
+    """ All stages """
     AccretorDuration = 0
     PropellerDuration = 0
     EjectorDuration = 0
@@ -146,31 +148,46 @@ def Track(P0, B0, pos0, vel0, field, t_start, t_end, plot, Misiriotis,
             # print(solution.message)
             break
         
-    """ Resulting arrays """
-    if isinstance(B, float) or isinstance(B, int):
+    """ Making arrays from scipy functions """
+    if np.isscalar(B):
         B = np.zeros(len(T)) + B
     else:
         B = np.array(B(T))
-    if isinstance(v, float) or isinstance(v, int):
+    if np.isscalar(v):
         v = np.zeros(len(T)) + v
     else:
         v = np.array(v(T))
-    if isinstance(n, float) or isinstance(n, int):
+    if np.isscalar(n):
         n = np.zeros(len(T)) + n
     else:
         n = n(T)
     
-    duration = AccretorDuration, PropellerDuration, EjectorDuration, GeorotatorDuration
+    # if isinstance(B, float) or isinstance(B, int):
+    #     B = np.zeros(len(T)) + B
+    # else:
+    #     B = np.array(B(T))
+    # if isinstance(v, float) or isinstance(v, int):
+    #     v = np.zeros(len(T)) + v
+    # else:
+    #     v = np.array(v(T))
+    # if isinstance(n, float) or isinstance(n, int):
+    #     n = np.zeros(len(T)) + n
+    # else:
+    #     n = n(T)
+    
+    duration = (AccretorDuration, PropellerDuration, EjectorDuration,
+                GeorotatorDuration)
     duration = duration / (T[-1] - T[0])
     return T, P, B, v, n, t_stages, stages, NS_0, duration
 
 
-def TrackPlot(P0, B0, pos0, vel0, field, t_start, t_end, plot, Misiriotis,
-              v=None, n=None):
+def TrackPlot(P0, B0, pos0, vel0, field, t_start, t_end, plotOrbit, realisticMap,
+          v=None, n=None):
     
-    t, P, B, v, n, t_stages, stages, NS, popt = Track(P0, B0, pos0, vel0, field,
-                                                t_start, t_end, plot,
-                                                Misiriotis, v, n)
+    t, P, B, v, n, t_stages, stages, NS, popt = Track(P0, B0, pos0, vel0,
+                                                      field, t_start, t_end,
+                                                      plotOrbit, realisticMap,
+                                                      v, n)
     print("number of stages:", len(t_stages), stages, t_stages)
     # fig = plt.figure(figsize=(10, 10))
     # ax = fig.add_axes([0.1, 0.1, 0.9, 0.9], aspect=1)
@@ -197,7 +214,7 @@ def TrackPlot(P0, B0, pos0, vel0, field, t_start, t_end, plot, Misiriotis,
     
     t_stages = np.append(t_stages, t_end)
     for i in range(len(axs)):
-        axs[i].set_xscale('log')
+        # axs[i].set_xscale('log') 
         top = np.max(arrs[i])
         bottom = np.min(arrs[i])
         min_hight = 2
@@ -261,6 +278,8 @@ def TrackPlot(P0, B0, pos0, vel0, field, t_start, t_end, plot, Misiriotis,
         R_G = np.zeros(len(t)) + R_G
     R_m = NS.R_m(t)
     R_stop = R_m
+    if np.isscalar(R_stop):
+        R_stop = np.zeros(len(t)) + R_stop
     if tEstart and tEend:
         R_stop[idxEstart:idxEend] = R_Sh[idxEstart:idxEend]
 
@@ -281,9 +300,9 @@ def TrackPlot(P0, B0, pos0, vel0, field, t_start, t_end, plot, Misiriotis,
         ax.plot(t, R_G, label='$R_{G}$', ls=':')
         ax.plot(t, R_stop, label='$R_{stop}$', ls='--')
         ax.plot(t, R_c, label='$R_c$', ls='-.')
-        ax.plot(t, R_l, label='$R_{l}$', ls=':')
-        # ax.plot(t, R_Sh, label='$R_{Sh}$', ls='--')
-        # ax.plot(t, R_m, label='$R_{m}$', ls='--')
+        ax.plot(t, R_l, label='$R_l$', ls=':')
+        # ax.plot(t, R_Sh, label='$R_(Sh)$', ls='--')
+        # ax.plot(t, R_m, label='$R_(m)$', ls='--')
         ax.set_xlabel("time, s", fontsize=fontsize)
         ax.legend(fontsize=fontsize)
         ax.set_xscale('log')

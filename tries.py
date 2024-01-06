@@ -17,22 +17,26 @@ import pandas as pd
 from scipy.optimize import brentq
 from potential import Trajectory
 from constants import birth_age, galaxy_age
-from potential import DensityMapPlot
 from track import Track, TrackPlot, TrackEjectorPropeller
 from potential import Orbit
 from tqdm import tqdm
 from time import time
 from constants import year
+from popsynthesis import Popsynthesis
 to_time = time()
 
+N = 100
+Popsynthesis(N, "CF")
 
 # help(model.Simulation(1,1,1,1))
 
-Trajectory(pos=[0,20,0.], vel=[150,0,0], t_end=galaxy_age, plot=True,
-               Misiriotis=False) # initial pos, vel
+# Trajectory(pos=[0,10,0.], vel=[0,0,0], t_end=galaxy_age, plotOrbit=True,
+#                 realisticMap=False) # initial pos, vel
 
-# TrackPlot(0.5, 1e12, pos0=[0,5,0], vel0=[0,0,0],
-#       field='HA', t_start = birth_age, t_end=galaxy_age, plot=True, Misiriotis=True)
+
+# TrackPlot(0.1, 1e12, pos0=[0,0,0], vel0=[0,0,150],
+#           field='CF', t_start = birth_age, t_end=galaxy_age, plotOrbit=True,
+#           realisticMap=False)
 
 # TrackPlot(0.5, 1e12, pos0=[0,1,0], vel0=[30,0,0],
 #       field='CF', t_start = birth_age, t_end=galaxy_age, plot=True, Misiriotis=True)

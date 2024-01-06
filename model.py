@@ -21,7 +21,7 @@ class Simulation():
                  case="A"):
         self.case = case
         self.B0 = B
-        self.v0 = v # it is c_s in DP
+        self.v0 = v # cm/s
         self.n0 = n
         self.GM = G * 1.4 * M_sun
         self.k = 2.
@@ -97,7 +97,8 @@ class Simulation():
 
     def R_Sh(self, t, P):
         omega = 2 * pi / P
-        R_Sh = (self.k * self.mu(t)**2 / self.M_dot(t) * self.GM**2 * omega**4 / self.v(t)**5 / c**4)**0.5
+        R_Sh = ((self.k * self.mu(t)**2 / self.M_dot(t) * self.GM**2 *
+                 omega**4 / self.v(t)**5 / c**4)**0.5)
         return R_Sh
 
     def R_c(self, P):
@@ -120,9 +121,12 @@ class Simulation():
 
     def P_EP(self, t):
         """ R_Sh = R_G """
-        P1 = 2 * pi / c * (self.k * self.mu(t)**2 / (4 * self.M_dot(t) * self.v(t)))**0.25
+        P1 = (2 * pi / c * (self.k * self.mu(t)**2 /
+                            (4 * self.M_dot(t) * self.v(t)))**0.25)
         """ R_Sh = R_l """
-        P2 = 2 * pi / c * (self.k * self.mu(t)**2 / self.v(t)**5 * self.GM**2 / self.M_dot(t))**(1/6) # is it True? Nobody knows
+        P2 = (2 * pi / c *
+              (self.k * self.mu(t)**2 / self.v(t)**5 * self.GM**2 /
+               self.M_dot(t))**(1/6)) # is it True? Nobody knows
         return min(P1, P2)
 
     def P_PE(self, t):
@@ -137,16 +141,15 @@ class Simulation():
         P_PA = 2 * pi / (self.GM / self.R_m(t)**3)**0.5
         return P_PA
 
-    # def P_PA_to_P_EP(self, t):
-    #     PPP = self.mu(t)**(1/6) * c / (2**(1/3) * self.k**0.25 * self.M_dot(t)**(1/12) * self.GM**(1/3) * self.v(t)**(5/12))
-    #     return PPP
-    
     def t_P(self, case):
         t = birth_age
         if case == "A":
-            t_P = self.I / (self.M_dot(t) * self.R_m(t)**2) * np.log(self.P_PA(t) / self.P_EP(t))
+            t_P = (self.I / (self.M_dot(t) * self.R_m(t)**2)
+                   * np.log(self.P_PA(t) / self.P_EP(t)))
         elif case == "B":
-            t_P = 2 * pi * self.I / (self.M_dot(t) * (2 * self.GM * self.R_m(t))**0.5) * (1 / self.P_EP(t) - 1 / self.P_PA(t))
+            t_P = (2 * pi * self.I /
+                   (self.M_dot(t)* (2 * self.GM * self.R_m(t))**0.5)
+                   * (1 / self.P_EP(t) - 1 / self.P_PA(t)))
         else:
             print("There are only two Propeller cases: A and B")
             t_P = 0
@@ -157,26 +160,22 @@ class Simulation():
         t = birth_age
         if not t_E:
             t_E = galaxy_age - self.t_P(case)
-        # P_min = 2 * pi * (2 * self.k * self.mu(t)**2 * t_E / self.I / c**3 + self.P_EP(t) / (4 * pi**2))**0.5
-        P_min = (self.P_EP(t)**2 - 8 * pi**2 * self.k * self.mu(t) / self.I * self.mu(t) / c**2 * t_E / c)**0.5
+        P_min = ((self.P_EP(t)**2 - 8 * pi**2 * self.k * self.mu(t) / self.I
+                  * self.mu(t) / c**2 * t_E / c)**0.5)
         return P_min
 
     def t_E(self, P_0):
         t = 5.
-        t_E = self.I / (8*pi**2*self.k*self.mu(t)**2) * c**3 * (self.P_EP(t)**2 - P_0**2)
+        t_E = (self.I / (8*pi**2*self.k*self.mu(t)**2) * c**3 *
+               (self.P_EP(t)**2 - P_0**2))
         return t_E
-
-    # def t_E_max(self):
-    #     return self.t_E(0)
-        # t = birth_age
-        # # wrong t_E_max = pi * self.I / self.mu(t) / (4 * self.k**0.5) * c / (self.M_dot(t) * self.v(t))**0.5
-        # t_E_max = self.I * self.P_EP(t)**2 / (8*pi**2*self.k*self.mu(t)**2) * c**3
-        # return t_E_max
 
     def P_turb(self, t):
         v_t = 1e5 * (self.R_G(t) / 1e18)**(1/3) #LipunovPopov1995
         v_t = self.v_t #!!! УТОЧНИТЬ
-        P_turb = 3.9e8 * (self.v(t)/1e7)**(43/9)*(self.n(t))**(-2/3)*(self.mu(t)/1e30)**(2/3)*(self.I/1e45)**(1/3)*(self.GM / (G * 1.4 * M_sun))**(-26/9)
+        P_turb = (3.9e8 * (self.v(t)/1e7)**(43/9) * (self.n(t))**(-2/3) * 
+                  (self.mu(t)/1e30)**(2/3) * (self.I/1e45)**(1/3) *
+                  (self.GM / (G * 1.4 * M_sun))**(-26/9))
         return P_turb
 
     def j(self, t):
@@ -187,7 +186,8 @@ class Simulation():
     
     def P_cr(self, t):
         """ from Ikhsanov 2001a """
-        P_cr = 2 * pi * self.mu(t) / (self.GM * self.M_dot(t) * self.j(t))**0.5 * self.k_t**0.5
+        P_cr = (2 * pi * self.mu(t) /
+                (self.GM * self.M_dot(t) * self.j(t))**0.5 * self.k_t**0.5)
         return P_cr
 
     def E_to_P(self, t, P):
@@ -322,7 +322,8 @@ class Propeller(Simulation):
                          t_stop=t_stop, case=case)
 
     def get_term_events(self):
-        return [self.P_to_A, self.P_to_G, self.P_to_E], [Accretor, Georotator, Ejector], [self.P_PA, 0, self.P_PE]
+        return ([self.P_to_A, self.P_to_G, self.P_to_E],
+                [Accretor, Georotator, Ejector], [self.P_PA, 0, self.P_PE])
 
     def K_P(self, t, P):
         R_m = self.R_m(t)
@@ -351,10 +352,12 @@ class Accretor(Simulation):
                          t_stop=t_stop, case=case)
    
     def get_term_events(self):
-        return [self.A_to_P, self.A_to_G, self.A_to_eq], [Propeller, Georotator, None], [self.P_PA, 0, self.P_cr]
+        return ([self.A_to_P, self.A_to_G, self.A_to_eq],
+                [Propeller, Georotator, None], [self.P_PA, 0, self.P_cr])
    
     def dP_dt(self, t, P):
-        dP_dt = P**2 / (2 * pi * self.I) * self.mu(t)**2 / self.R_c(P)**3 * self.k_t
+        dP_dt = (P**2 / (2 * pi * self.I) * self.mu(t)**2 / self.R_c(P)**3
+                 * self.k_t)
         return dP_dt
 
 
@@ -372,7 +375,7 @@ class Georotator(Simulation):
         """ Decelerating moment of inertia on Accretor stage """ #!!!
         """ Магнитосфера R_m_geo теперь!!!!! """
 
-        return 0#1 / 3 * self.mu(t)**2 / self.R_c(P)**3
+        return 0 # 1 / 3 * self.mu(t)**2 / self.R_c(P)**3
     
     def dP_dt(self, t, P):
         """ Period change over time on Accretor stage """

@@ -4,7 +4,7 @@ Created on Thu May 11 22:17:08 2023
 
 @author: AMD
 """
-from track import Track, TrackPlot
+from track import Track
 from tqdm import tqdm
 import numpy as np
 import pandas as pd
@@ -17,9 +17,9 @@ import os.path
 warnings.filterwarnings("ignore")
 n_cores = multiprocessing.cpu_count()
 
-def Popsynthesis(N=1, field="CF"):
+def Popsynthesis(N=1, field="CF", name="f"):
     
-    data = pd.read_csv('distribution.csv', sep=';')
+    data = pd.read_csv('data//distribution.csv', sep=';')
     p = data['p']
     B = data['B']
     # M = data['M']
@@ -55,8 +55,8 @@ def Popsynthesis(N=1, field="CF"):
         nonlocal p
         nonlocal B
         popt = Track(10**p[i], B[i], pos0=pos0, vel0=vel0, field=field,
-                      t_start=birth_age, t_end=galaxy_age, plot=False,
-                      Misiriotis=True)
+                      t_start=birth_age, t_end=galaxy_age,  plotOrbit=False,
+                      realisticMap=False)
         T, p_res, B_res, v_res, n_res, t_stages, stages, NS_0, duration = popt
         A, P, E, G = duration
         try:
@@ -89,7 +89,7 @@ def Popsynthesis(N=1, field="CF"):
           A / number_All, P / number_All,
           E / number_All, G / number_All)
     
-    name = 'f'+str(N) + str(field)
+    name = name+str(N) + str(field)
     
     if os.path.isfile('results/popsynthesis.csv'):
         df = pd.DataFrame([[name, N, number_All, field,
@@ -114,8 +114,8 @@ def Popsynthesis(N=1, field="CF"):
     
     return p_Array, B_Array, V_Array
 
-N = 20
-Popsynthesis(N, field="CF")
+# N = 20
+# Popsynthesis(N, field="CF")
 
 """ Old popsynthesis """
 

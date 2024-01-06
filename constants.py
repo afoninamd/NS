@@ -19,9 +19,9 @@ birth_age = 5                          # [s]
 galaxy_age = 1.361e10 * year           # [s]
 R_NS = 1e6                             # [cm]
 I = 1e45                               # [g cm**2]
-sunPos = 8.0 # from Yao2017 8.3
-pc = 3.08e18
-rgal = 20 # [kpc]
+sunPos = 8.0                           # [kpc] from Yao2017 8.3
+pc = 3.08e18                           # [cm]
+rgal = 20                              # [kpc]
 
 """ Other """
 fontsize = 16
