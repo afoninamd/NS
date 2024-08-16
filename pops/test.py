@@ -20,11 +20,10 @@ from astropy import constants as const
 from numpy import pi
 import pandas as pd
 from scipy.optimize import brentq
-from potential import Trajectory
+from pops.potential import Trajectory
 
-from potential import DensityMapPlot
-from track import Track, TrackPlot
-from potential import Orbit
+from pops.potential import Orbit
+from pops.track import Track, TrackPlot
 from tqdm import tqdm
 from time import time
 

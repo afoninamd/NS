@@ -8,7 +8,7 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from track import Track, TrackPlot
+from pops.track import Track, TrackPlot
 from tqdm import tqdm
 import numpy as np
 import pandas as pd
