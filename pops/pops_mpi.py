@@ -225,10 +225,10 @@ def test_distribution(N):
     plt.hist(Array, bins=10, alpha=0.5)
     # plt.scatter(data['x'], data['y'])
 
-
-if not os.path.exists(f'distribution_{N}.csv'):
-    print('new distribution is in process')
-    distribution(N)
+if crank == 0:
+    if not os.path.exists(f'distribution_{N}.csv'):
+        print('new distribution is in process')
+        distribution(N)
 
 """  POPSYNTHESIS STARTS HERE  """
 
