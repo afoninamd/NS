@@ -291,21 +291,9 @@ def calculations():
                                                       galaxy_type=galaxy_type)
                     t1, P1, B1, stages1, v1, Mdot1, ph1, x1, y1, z1, vx1, vy1, vz1 = res
                     if len(stages1[stages1>1]) > 0:
-                        if len(stages1==3) == 0:
-                            df = pd.DataFrame({'t': t1, 'P': P1, 'B': B1, 'stages': stages1,
-                                            'v': v1, 'Mdot': Mdot1, 'phase': ph1,
-                                            'x': x1, 'y': y1, 'z': z1})
-    
-                        else:
-                            T, f0, f1, c0, c1 = one_observability(t1, stages1, x1, y1, z1, B1, Mdot1,
-                                                                  nu, deltanu, cross, Seff)
-                         
-                            df = pd.DataFrame({'t': t1, 'P': P1, 'B': B1, 'stages': stages1,
-                                            'v': v1, 'Mdot': Mdot1, 'phase': ph1,
-                                            'x': x1, 'y': y1, 'z': z1,
-                                            'T': T, 'f0': f0, 'c0': c0,
-                                            'f1': f1, 'c1': c1})
-                        
+                        df = pd.DataFrame({'t': t1, 'P': P1, 'B': B1, 'stages': stages1,
+                                        'v': v1, 'Mdot': Mdot1, 'phase': ph1,
+                                        'x': x1, 'y': y1, 'z': z1})                        
                         # reducing the size
                         df['stages'] = df['stages'].astype('int8')
                         df['phase'] = df['phase'].astype('int8')
