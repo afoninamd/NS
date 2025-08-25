@@ -264,7 +264,7 @@ def calculations():
     vz = (Vz+Vzpec) / 1e5
 
     for i in (range(start_idx, end_idx)): #tqdm
-        print(f"Process {crank} handling index {i} (start = {start_idx}, end = {end_idx})")
+        # print(f"Process {crank} handling index {i} (start = {start_idx}, end = {end_idx})")
         # print(i, z[i])
         pos = [x[i], y[i], z[i]] # kpc
         vel = [vx[i], vy[i], vz[i]]# km/s
@@ -293,7 +293,7 @@ def calculations():
                     if len(stages1[stages1>1]) > 0:
                         df = pd.DataFrame({'t': t1, 'P': P1, 'B': B1, 'stages': stages1,
                                         'v': v1, 'Mdot': Mdot1, 'phase': ph1,
-                                        'x': x1, 'y': y1, 'z': z1})                        
+                                        'x': x1, 'y': y1, 'z': z1})
                         # reducing the size
                         df['stages'] = df['stages'].astype('int8')
                         df['phase'] = df['phase'].astype('int8')
