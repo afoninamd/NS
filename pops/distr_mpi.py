@@ -6,7 +6,7 @@ Created on Wed Aug 27 15:29:05 2025
 @author: afoninamd
 """
 
-N = 8  # the number of tracks overall
+N = 10_000  # the number of tracks overall
 
 from mpi4py import MPI
 import sys
