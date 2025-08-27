@@ -21,7 +21,7 @@ import matplotlib.pyplot as plt
 from astropy.io import fits
 from time import time
 
-path_data = '/home/afoninamd/Documents/NS/data/'
+path_data = 'data/'
 
 """ Tabulated data """
 range_kev = np.array([
