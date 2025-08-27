@@ -18,7 +18,8 @@ import pandas as pd
 import astropy.units as u
 from astropy.cosmology import default_cosmology
 
-mw = gp.BovyMWPotential2014() # from Bovy 2015 (getpot is in the bottom)
+# mw = gp.BovyMWPotential2014() # from Bovy 2015 (getpot is in the bottom)
+mw = gp.MilkyWayPotential()
 
 """ Physical constants """
 c = const.c.cgs.value                  # speed of light in vacuum,   [cm / s]

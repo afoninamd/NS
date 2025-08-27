@@ -118,7 +118,7 @@ def find_stage(t_cur: float, P_cur: float, NS: Object,
 
 def evolution(t: np.array, P0:float, B: np.array,
               Omega: float, case: str, Mdot: np.array,
-              v: np.array, plot: bool) -> tuple[np.array, np.array, np.array]:
+              v: np.array, plot: bool):
     """
     Calculates the spin period evolution and the evolutionary stages,
     the arrays t, B, v, Mdot are of the same length

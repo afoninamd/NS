@@ -79,7 +79,7 @@ def sample_spherical(npoints, ndim=3):
     return vec
 
 
-def V(N: int) -> tuple[np.array, np.array, np.array]:
+def V(N: int):
     """ Arrays of Vx, Vy, Vz in cm/s """
     w = 0.2
     sigma1 = 45e5
@@ -104,7 +104,7 @@ def V(N: int) -> tuple[np.array, np.array, np.array]:
 
 
 def Vpec(x: np.array, y: np.array, N: np.array,
-         rlim=rgal) -> tuple[np.array, np.array, np.array]:
+         rlim=rgal):
     """ One set of peculiar velocities """
     D = 6e-7 # (km/s)^2 / year
     tau = 0 # year, progenitor star age
