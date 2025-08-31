@@ -10,13 +10,28 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 import numpy as np
-import scipy as sp
 from time import time
 from main.model import Object
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from main.constants import galaxy_age, year, G, M_NS, Gyr
 t_Ohm = 1e6 * year
+
+
+def star_formation_history(t: np.array):
+    """ interpolation from Haywood 2016, Fig.4, fine blue line """
+    t = t / Gyr
+    SFR = np.zeros(len(t))
+    SFR[t<=7] = 0.1
+    cond1 = np.logical_and(t>8.5, t<10)
+    SFR[cond1] = 0.5 * 2 / 3 * (t[cond1]-8.5)
+    cond2 = np.logical_and(t>10, t<=12.5)
+    SFR[cond2] = 0.5
+    SFR[t>12.5] = 0.5 - 0.5/(13.8-12.5) * (t[t>12.5]-12.5)
+    SFR[SFR<0] = 0
+    t = t * Gyr
+    return SFR  # / np.sum(SFR) # 2.65 --analytical coefficient # M_sun per second
+
 
 def gett(t_end: float, n: int) -> np.array:
     """

@@ -6,9 +6,6 @@ Created on Wed Aug 27 15:29:05 2025
 @author: afoninamd
 """
 
-N = 10_000  # the number of tracks overall
-
-from mpi4py import MPI
 import sys
 import os
 import numpy as np
@@ -16,20 +13,18 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from main.constants import rgal, mw
+from main.constants import rgal, mw, N
 
-comm = MPI.COMM_WORLD
-crank = comm.Get_rank()
 
 """  CREATING THE DISTRIBUTION  """
 
 def B_pulsar(N: int) -> np.array:
-    B_power = np.random.uniform(low=9, high=16, size=N)
+    B_power = np.random.uniform(low=10, high=15, size=N)
     return 10**B_power
 
 
 def P_pulsar(N: int) -> np.array:
-    P_power = np.random.uniform(low=-3, high=3, size=N)
+    P_power = np.random.uniform(low=-2, high=3, size=N)
     return 10**P_power
 
 
@@ -45,7 +40,7 @@ def V(N: int):
     
     xi, yi, zi = sample_spherical(N)
     
-    V = np.random.uniform(low=0, high=800e5, size=N)
+    V = np.random.uniform(low=0, high=500e5, size=N)
     Vx, Vy, Vz = V*xi, V*yi, V*zi
     
     return Vx, Vy, Vz  #  cm/s
@@ -205,7 +200,7 @@ def test_distribution(N):
     plt.hist(Array, bins=10, alpha=0.5)
     # plt.scatter(data['x'], data['y'])
 
-if crank == 0:
-    if not os.path.exists(f'distribution_{N}.csv'):
-        print('new distribution is in process')
-        distribution(N)
+
+if not os.path.exists(f'distribution_{N}.csv'):
+    print('new distribution is in process')
+    distribution(N)

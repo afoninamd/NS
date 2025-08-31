@@ -17,11 +17,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from pops.track import get_coordinates_velocities, evolution_galaxy_iterations
 from pops.observability import flux_to_counts_constants
 from main.evolution import gett
-from main.constants import galaxy_age, Gyr
-from pops.distr_mpi import N
-
-output_dir = 'result/mpi/'
-
+from main.constants import galaxy_age, Gyr, N, output_dir
 
 comm = MPI.COMM_WORLD
 crank = comm.Get_rank()
@@ -44,7 +40,7 @@ def calculations():
     """
     for galaxy_type in ['simple', 'two_phase']:
         for field in ['CF', 'ED']:
-            for case in ['A', 'B', 'C']:
+            for case in ['A', 'B', 'C', 'D']:
                 path = output_dir + '{}/{}/{}/'.format(galaxy_type, field, case)
                 directory = os.path.dirname(path)
                 os.makedirs(directory, exist_ok=True)
@@ -90,18 +86,18 @@ def calculations():
     
         for galaxy_type in ['simple', 'two_phase']:
             for field in ['CF', 'ED']:
-                for case in ['A', 'B', 'C']: #, 'D']:
+                for case in ['A', 'B', 'C', 'D']:
                     res = evolution_galaxy_iterations(P0, t, xyz, v_xyz, B0, field, case,
                                                       plot=0, iterations=3 , # 3
                                                       galaxy_type=galaxy_type)
                     t1, P1, B1, stages1, v1, Mdot1, ph1, x1, y1, z1, vx1, vy1, vz1 = res
                     if len(stages1[stages1>1]) > 0:
-                        df = pd.DataFrame({'t': t1, 'P': P1, 'B': B1, 'stages': stages1,
-                                        'v': v1, 'Mdot': Mdot1, 'phase': ph1,
-                                        'x': x1, 'y': y1, 'z': z1})
+                        df = pd.DataFrame({'t': t1, 'stages': stages1})
+                                        # 'P': P1, 'B': B1, 'v': v1, 'Mdot': Mdot1, 'phase': ph1,
+                                        # 'x': x1, 'y': y1, 'z': z1})
                         # reducing the size
                         df['stages'] = df['stages'].astype('int8')
-                        df['phase'] = df['phase'].astype('int8')
+                        # df['phase'] = df['phase'].astype('int8')
                         float_cols = df.select_dtypes(include=['float64']).columns
                         df[float_cols] = df[float_cols].astype('float32')
                         
