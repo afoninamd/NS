@@ -16,7 +16,6 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from main.constants import N, output_dir
 from main.evolution import star_formation_history
 
-
 cur_dir = output_dir + 'npy/'
 if not os.path.exists(cur_dir):
     os.mkdir(cur_dir)
@@ -80,7 +79,7 @@ def create_uniform():
                     np.save(cur_dir+f'{galaxy_type}_{field}_{case}_sfh{sfh}_stage{cur_stage}', Array)
 
 
-def plot_uniform(galaxy_type='simple', field='CF', case='A', sfh=True, stage=cur_stage):
+def plot_uniform(galaxy_type='simple', field='CF', case='A', sfh=False, stage=cur_stage):
     loaded_array = np.load(cur_dir+f'{galaxy_type}_{field}_{case}_sfh{sfh}_stage{cur_stage}.npy')
     # loaded_array = np.log10(loaded_array)
     
@@ -151,4 +150,6 @@ def plot_uniform(galaxy_type='simple', field='CF', case='A', sfh=True, stage=cur
         os.mkdir(output_dir + 'figures/')
     fig.savefig(output_dir + 'figures/triangle_{galaxy_type}_{field}_{case}_sfh{sfh}_stage{cur_stage}.pdf', bbox_inches='tight')
 
+
+create_uniform()
 plot_uniform()
