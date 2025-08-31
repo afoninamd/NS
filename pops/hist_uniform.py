@@ -58,7 +58,7 @@ def create_uniform():
     for galaxy_type in ['simple', 'two_phase']:
         for field in ['CF', 'ED']:
             for case in ['A', 'B', 'C']:
-                for sfh in [True, False]:
+                for sfh in [False]:
                     Array = np.zeros([len(Vb)-1, len(Pb)-1, len(Bb)-1, len(Zb)-1, len(Rb)-1], dtype=np.float32)
                     for i in range(N):
                         path_i = output_dir + '{}/{}/{}/{}.feather'.format(galaxy_type, field, case, i)
