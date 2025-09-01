@@ -12,7 +12,6 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from time import time
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from main.constants import N, output_dir
@@ -33,7 +32,7 @@ Zb = np.linspace(-0.5, 0.5, 51, endpoint=True)
 Rb = np.linspace(0, 20, 51, endpoint=True)
 
 cur_stage = 3
-time0 = time()
+
 def create_uniform():
     
     """ Reading the distribution data """
@@ -162,7 +161,6 @@ def plot_uniform(galaxy_type='simple', field='CF', case='A', sfh=False, stage=cu
         os.mkdir(output_dir + 'figures/')
     fig.savefig(output_dir + 'figures/triangle_{galaxy_type}_{field}_{case}_sfh{sfh}_stage{cur_stage}.pdf', bbox_inches='tight')
 
-
-create_uniform()
-print(time()-time0)
-plot_uniform()
+if crank == 0:
+    create_uniform()
+    plot_uniform()
