@@ -39,12 +39,6 @@ def calculations():
     Performs calculations for distribution_{}.csv initial parameters,
     where {} is the number of tracks
     """
-    for galaxy_type in ['simple', 'two_phase']:
-        for field in ['CF', 'ED']:
-            for case in ['A', 'B', 'C', 'D']:
-                path = output_dir + '{}/{}/{}/'.format(galaxy_type, field, case)
-                directory = os.path.dirname(path)
-                os.makedirs(directory, exist_ok=True)
     
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
@@ -97,7 +91,7 @@ def calculations():
                         # if len(stages1[stages1==3]) > 0:
                             # for sfr in [True, False]:
                             #     name = output_dir + file_name + '_sfr{}'.format(sfr)
-                            
+                        
                         """ count weights """
                         weight = t1[1:] - t1[:-1]
                         # if sfr:
@@ -142,3 +136,10 @@ def check_star(i):
 # check_star(10)
 
 calculations()
+
+# for galaxy_type in ['simple', 'two_phase']:
+#     for field in ['CF', 'ED']:
+#         for case in ['A', 'B', 'C', 'D']:
+#             path = output_dir + '{}/{}/{}/'.format(galaxy_type, field, case)
+#             directory = os.path.dirname(path)
+#             os.makedirs(directory, exist_ok=True)
