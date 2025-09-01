@@ -10,13 +10,14 @@ from mpi4py import MPI
 import sys
 import os
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
-import pyarrow.feather as feather
+# import pyarrow.feather as feather
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from pops.track import get_coordinates_velocities, evolution_galaxy_iterations
 from pops.observability import flux_to_counts_constants
-from main.evolution import gett
+from main.evolution import gett, star_formation_history
 from main.constants import galaxy_age, Gyr, N, output_dir
 
 comm = MPI.COMM_WORLD
@@ -87,25 +88,39 @@ def calculations():
         for galaxy_type in ['simple', 'two_phase']:
             for field in ['CF', 'ED']:
                 for case in ['A', 'B', 'C', 'D']:
-                    res = evolution_galaxy_iterations(P0, t, xyz, v_xyz, B0, field, case,
-                                                      plot=0, iterations=3 , # 3
-                                                      galaxy_type=galaxy_type)
-                    t1, P1, B1, stages1, v1, Mdot1, ph1, x1, y1, z1, vx1, vy1, vz1 = res
-                    if len(stages1[stages1>1]) > 0:
-                        df = pd.DataFrame({'t': t1, 'stages': stages1})
-                                        # 'P': P1, 'B': B1, 'v': v1, 'Mdot': Mdot1, 'phase': ph1,
-                                        # 'x': x1, 'y': y1, 'z': z1})
-                        # reducing the size
-                        df['stages'] = df['stages'].astype('int8')
-                        # df['phase'] = df['phase'].astype('int8')
-                        float_cols = df.select_dtypes(include=['float64']).columns
-                        df[float_cols] = df[float_cols].astype('float32')
+                    file_name = output_dir + '{}_{}_{}_{}.txt'.format(crank, galaxy_type, field, case)
+                    with open(file_name, 'a') as file:
+                        res = evolution_galaxy_iterations(P0, t, xyz, v_xyz, B0, field, case,
+                                                          plot=0, iterations=3 , # 3
+                                                          galaxy_type=galaxy_type)
+                        t1, P1, B1, stages1, v1, Mdot1, ph1, x1, y1, z1, vx1, vy1, vz1 = res
+                        # if len(stages1[stages1==3]) > 0:
+                            # for sfr in [True, False]:
+                            #     name = output_dir + file_name + '_sfr{}'.format(sfr)
+                            
+                        """ count weights """
+                        weight = t1[1:] - t1[:-1]
+                        # if sfr:
+                        #     weight = weight * star_formation_history(t1[1:])
+                        weight = weight / np.sum(weight)
+                        weight[stages1[1:] != 3] = 0
                         
-                        name = '{}/{}/{}/{}'.format(galaxy_type, field, case, i)
-                        path = output_dir + name + '.feather'
+                        file.write('{}\t{}\n'.format(i, np.sum(weight)))
+                            
+                        # df = pd.DataFrame({'t': t1, 'stages': stages1})
+                        #                 # 'P': P1, 'B': B1, 'v': v1, 'Mdot': Mdot1, 'phase': ph1,
+                        #                 # 'x': x1, 'y': y1, 'z': z1})
+                        # # reducing the size
+                        # df['stages'] = df['stages'].astype('int8')
+                        # # df['phase'] = df['phase'].astype('int8')
+                        # float_cols = df.select_dtypes(include=['float64']).columns
+                        # df[float_cols] = df[float_cols].astype('float32')
                         
-                        # pd.DataFrame.to_csv(df, path, sep=';', mode='a')
-                        feather.write_feather(df, path)
+                        # name = '{}/{}/{}/{}'.format(galaxy_type, field, case, i)
+                        # path = output_dir + name + '.feather'
+                        
+                        # # pd.DataFrame.to_csv(df, path, sep=';', mode='a')
+                        # feather.write_feather(df, path)
                         
     # with open(os.path.join(output_dir, f"result_{crank}.txt"), "w") as f:
     #     for ii in range(local_vals_count):

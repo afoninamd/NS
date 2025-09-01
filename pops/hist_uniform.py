@@ -6,15 +6,20 @@ Created on Sun Aug 31 13:11:24 2025
 @author: afoninamd
 """
 
+from mpi4py import MPI
 import sys
 import os
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+from time import time
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from main.constants import N, output_dir
-from main.evolution import star_formation_history
+
+comm = MPI.COMM_WORLD
+crank = comm.Get_rank()
+csize = comm.Get_size()
 
 cur_dir = output_dir + 'npy/'
 if not os.path.exists(cur_dir):
@@ -28,7 +33,7 @@ Zb = np.linspace(-0.5, 0.5, 51, endpoint=True)
 Rb = np.linspace(0, 20, 51, endpoint=True)
 
 cur_stage = 3
-
+time0 = time()
 def create_uniform():
     
     """ Reading the distribution data """
@@ -52,40 +57,49 @@ def create_uniform():
     Zi[Zi>=len(Zb)-1] = len(Zb) - 2
     Ri[Ri>=len(Rb)-1] = len(Rb) - 2
     
-    galaxy_type, field, case = 'simple', 'CF', 'A'
-    sfh = True
     for galaxy_type in ['simple', 'two_phase']:
         for field in ['CF', 'ED']:
             for case in ['A', 'B', 'C']:
-                for sfh in [False]:
-                    Array = np.zeros([len(Vb)-1, len(Pb)-1, len(Bb)-1, len(Zb)-1, len(Rb)-1], dtype=np.float32)
-                    for i in range(N):
-                        path_i = output_dir + '{}/{}/{}/{}.feather'.format(galaxy_type, field, case, i)
-                        if os.path.exists(path_i):
-                            """ read one track """
-                            f = pd.read_feather(path_i)
-                            t = np.array(f['t'])
-                            stage = np.array(f['stages'])
+                Array = np.zeros([len(Vb)-1, len(Pb)-1, len(Bb)-1, len(Zb)-1, len(Rb)-1], dtype=np.float32)
+                for crank in range(csize):
+                    file_name = output_dir + '{}_{}_{}_{}'.format(crank, galaxy_type, field, case)
+                    data = np.loadtxt(file_name+'.txt', dtype=float)
+                    
+                    index = np.array(data[:, 0], dtype=int)
+                    accretor_part = np.array(data[:, 1])
+                    for j in range(len(index)):
+                        i = index[j]
+                        Array[Vi[i], Bi[i], Ri[i], Zi[i], Pi[i]] += accretor_part[j]
+                    # folder_path = output_dir + '{}/{}/{}/'.format(galaxy_type, field, case)
+                    # file_list = [entry.name for entry in os.scandir(folder_path) if entry.is_file()]
+                    # for i in range(N):
+                    # # for file in file_list:
+                    #     path_i = output_dir + '{}/{}/{}/{}.feather'.format(galaxy_type, field, case, i)
+                    #     # if os.path.exists(path_i):
+                    #     try:
+                    #         """ read one track """
+                    #         f = pd.read_feather(path_i)
+                    #         # f = pd.read_feather(file)
+                    #         t = np.array(f['t'])
+                    #         stage = np.array(f['stages'])
                             
-                            """ count weights """
-                            weight = t[1:] - t[:-1]
-                            if sfh:
-                                weight = weight * star_formation_history(t[1:])
-                            weight = weight / np.sum(weight)
-                            weight[stage[1:] != cur_stage] = 0
-                        
-                            """ add weights to the bin """
-                            Array[Vi[i], Pi[i], Bi[i], Zi[i], Ri[i]] += np.sum(weight)
-                    np.save(cur_dir+f'{galaxy_type}_{field}_{case}_sfh{sfh}_stage{cur_stage}', Array)
+                    #         """ count weights """
+                    #         weight = t[1:] - t[:-1]
+                    #         if sfh:
+                    #             weight = weight * star_formation_history(t[1:])
+                    #         weight = weight / np.sum(weight)
+                    #         weight[stage[1:] != cur_stage] = 0
+                    #         """ add weights to the bin """
+                        # except FileNotFoundError:
+                        #     pass
+                np.save(cur_dir+'{}_{}_{}'.format(galaxy_type, field, case), Array)
 
 
 def plot_uniform(galaxy_type='simple', field='CF', case='A', sfh=False, stage=cur_stage):
-    loaded_array = np.load(cur_dir+f'{galaxy_type}_{field}_{case}_sfh{sfh}_stage{cur_stage}.npy')
-    # loaded_array = np.log10(loaded_array)
+    loaded_array = np.load(cur_dir+'{}_{}_{}.npy'.format(galaxy_type, field, case))
     
-    print(np.shape(loaded_array))
-    labels = [r'$z_0$, kpc', r'$R_0$, kpc', '$v_0$, km s$^{-1}$', r'log$_{10}P_0$, s', r'log$_{10}B_0$, G']
-    bins_list = [Zb, Rb, Vb, Pb, Bb]
+    labels = ['$v_0$, km s$^{-1}$', r'log$_{10}B_0$, G', r'$R_0$, kpc', r'$z_0$, kpc', r'log$_{10}P_0$, s']
+    bins_list = [Vb, Bb, Rb, Zb, Pb]
     
     V_counts = np.sum(loaded_array, axis=(1,2,3,4))
     P_counts = np.sum(loaded_array, axis=(0,2,3,4))
@@ -99,8 +113,8 @@ def plot_uniform(galaxy_type='simple', field='CF', case='A', sfh=False, stage=cu
     Z_center = (Zb[1:] + Zb[:-1]) / 2
     R_center = (Rb[1:] + Rb[:-1]) / 2
     
-    counts_list = [Z_counts, R_counts, V_counts, P_counts, B_counts]
-    centers_list = [Z_center, R_center, V_center, P_center, B_center]
+    counts_list = [V_counts, B_counts, R_counts, Z_counts, P_counts]
+    centers_list = [V_center, B_center, R_center, Z_center, P_center]
     # n_vars = data_points.shape[1]
     n_vars = 5
     
@@ -131,8 +145,6 @@ def plot_uniform(galaxy_type='simple', field='CF', case='A', sfh=False, stage=cu
             elif i > j:
                 
                 # ax.set_xlabel(labels[i])
-                
-                
                 x_edges = centers_list[j]
                 y_edges = centers_list[i]
                 
@@ -152,4 +164,5 @@ def plot_uniform(galaxy_type='simple', field='CF', case='A', sfh=False, stage=cu
 
 
 create_uniform()
+print(time()-time0)
 plot_uniform()
