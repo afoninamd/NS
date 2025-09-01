@@ -66,8 +66,8 @@ def calculations():
     
         # print(f"Process {crank} handling index {i} (start = {start_idx}, end = {end_idx})")
         
-        pos = [x[i], y[i], z[i]] # kpc
-        vel = [vx[i], vy[i], vz[i]]# km/s
+        pos = [x[i], y[i], z[i]]  # kpc
+        vel = [vx[i], vy[i], vz[i]]  # km/s
         P0 = P[i]
         B0 = B[i]
         

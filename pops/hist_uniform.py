@@ -15,7 +15,7 @@ import pandas as pd
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from main.constants import N, output_dir
 
-csize = 960
+csize = 192
 
 npy_dir = output_dir + 'npy/'
 if not os.path.exists(npy_dir):
@@ -38,7 +38,7 @@ def create_uniform():
     P = np.log10(df['P'])  # s
     B = np.log10(df['B'])  # G
     Z = np.array(df['z'])  # kpc
-    R = np.array(df['x']**2 + df['y']**2)**0.5 # kpc
+    R = (np.array(df['x'])**2 + np.array(df['y'])**2)**0.5 # kpc
     
     """ find the bin """
     Vi = np.searchsorted(Vb, V) - 1
@@ -60,12 +60,14 @@ def create_uniform():
                 for crank in range(csize):
                     file_name = output_dir + '{}_{}_{}_{}'.format(crank, galaxy_type, field, case)
                     data = np.loadtxt(file_name+'.txt', dtype=float)
-                    
-                    index = np.array(data[:, 0], dtype=int)
-                    accretor_part = np.array(data[:, 1])
-                    for j in range(len(index)):
-                        i = index[j]
-                        Array[Vi[i], Bi[i], Ri[i], Zi[i], Pi[i]] += accretor_part[j]
+                    try:
+                        index = np.array(data[:, 0], dtype=int)
+                        accretor_part = np.array(data[:, 1])
+                        for j in range(len(index)):
+                            i = index[j]
+                            Array[Vi[i], Bi[i], Ri[i], Zi[i], Pi[i]] += accretor_part[j]
+                    except BaseException as e:
+                        pass
                     # folder_path = output_dir + '{}/{}/{}/'.format(galaxy_type, field, case)
                     # file_list = [entry.name for entry in os.scandir(folder_path) if entry.is_file()]
                     # for i in range(N):
@@ -91,7 +93,7 @@ def create_uniform():
                 np.save(npy_dir+'{}_{}_{}'.format(galaxy_type, field, case), Array)
 
 
-def plot_uniform(galaxy_type='simple', field='CF', case='A', sfh=False, stage=cur_stage):
+def plot_uniform(galaxy_type='simple', field='ED', case='A', sfh=False, stage=cur_stage):
     loaded_array = np.load(npy_dir+'{}_{}_{}.npy'.format(galaxy_type, field, case))
     
     labels = ['$v_0$, km s$^{-1}$', r'log$_{10}B_0$, G', r'$R_0$, kpc', r'$z_0$, kpc', r'log$_{10}P_0$, s']

@@ -106,38 +106,38 @@ def XYZ(N=1, rlim=rgal, arms=False, Yao2017=True):
     # plt.plot(r, sum_rho/sum_rho[-1])
     # return 0
 
-    # phi = np.random.uniform(low=0, high=2*np.pi, size=N)
-    # r = np.random.uniform(low=0, high=20, size=N)  # kpc
-    # x = r * np.cos(phi)
-    # y = r * np.sin(phi)
+    phi = np.random.uniform(low=0, high=2*np.pi, size=N)
+    r = np.random.uniform(low=0, high=20, size=N)  # kpc
+    x = r * np.cos(phi)
+    y = r * np.sin(phi)
     
-    x_list = []
-    y_list = []
+    # x_list = []
+    # y_list = []
     
-    while len(x_list) < N:
-        # Generate candidate points
-        x_candidate = np.random.uniform(-rgal, rgal, size=N)
-        y_candidate = np.random.uniform(-rgal, rgal, size=N)
+    # while len(x_list) < N:
+    #     # Generate candidate points
+    #     x_candidate = np.random.uniform(-rgal, rgal, size=N)
+    #     y_candidate = np.random.uniform(-rgal, rgal, size=N)
         
-        # Compute the condition
-        mask = x_candidate**2 + y_candidate**2 <= rgal**2
+    #     # Compute the condition
+    #     mask = x_candidate**2 + y_candidate**2 <= rgal**2
         
-        # Select points that satisfy the condition
-        x_filtered = x_candidate[mask]
-        y_filtered = y_candidate[mask]
+    #     # Select points that satisfy the condition
+    #     x_filtered = x_candidate[mask]
+    #     y_filtered = y_candidate[mask]
         
-        # Append to lists
-        x_list.extend(x_filtered)
-        y_list.extend(y_filtered)
+    #     # Append to lists
+    #     x_list.extend(x_filtered)
+    #     y_list.extend(y_filtered)
         
-        # If we've gathered enough points, truncate
-        if len(x_list) > N:
-            x_list = x_list[:N]
-            y_list = y_list[:N]
+    #     # If we've gathered enough points, truncate
+    #     if len(x_list) > N:
+    #         x_list = x_list[:N]
+    #         y_list = y_list[:N]
     
-    # Convert to numpy arrays
-    x = np.array(x_list)
-    y = np.array(y_list)
+    # # Convert to numpy arrays
+    # x = np.array(x_list)
+    # y = np.array(y_list)
     z = np.random.uniform(-0.5, 0.5, size=N)
     
     v_x, v_y, v_z = Vpec(x, y, N)
