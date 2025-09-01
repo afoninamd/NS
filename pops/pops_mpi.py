@@ -44,7 +44,8 @@ def calculations():
     Performs calculations for distribution_{}.csv initial parameters,
     where {} is the number of tracks
     """
-
+                # df = pd.DataFrame({'i': np.array([]), 'accretor_part': np.array([])})
+    
     data = pd.read_csv('distribution_{}.csv'.format(N), sep=';')
     P = data['P']
     B = data['B']
@@ -60,10 +61,11 @@ def calculations():
     vx = (Vx+Vxpec) / 1e5
     vy = (Vy+Vypec) / 1e5
     vz = (Vz+Vzpec) / 1e5
-
+                
     for i in (range(start_idx, end_idx)): #tqdm
+    
         # print(f"Process {crank} handling index {i} (start = {start_idx}, end = {end_idx})")
-        # print(i)
+        
         pos = [x[i], y[i], z[i]] # kpc
         vel = [vx[i], vy[i], vz[i]]# km/s
         P0 = P[i]
@@ -87,21 +89,24 @@ def calculations():
                     file_name = output_dir + '{}_{}_{}_{}.txt'.format(crank, galaxy_type, field, case)
                     with open(file_name, 'a') as file:
                         res = evolution_galaxy_iterations(P0, t, xyz, v_xyz, B0, field, case,
-                                                          plot=0, iterations=3 , # 3
+                                                          plot=0, iterations=3 ,
                                                           galaxy_type=galaxy_type)
                         t1, P1, B1, stages1, v1, Mdot1, ph1, x1, y1, z1, vx1, vy1, vz1 = res
-                        # if len(stages1[stages1==3]) > 0:
+                        if len(stages1[stages1==3]) > 0:
                             # for sfr in [True, False]:
                             #     name = output_dir + file_name + '_sfr{}'.format(sfr)
                         
-                        """ count weights """
-                        weight = t1[1:] - t1[:-1]
-                        # if sfr:
-                        #     weight = weight * star_formation_history(t1[1:])
-                        weight = weight / np.sum(weight)
-                        weight[stages1[1:] != 3] = 0
-                        
-                        file.write('{}\t{}\n'.format(i, np.sum(weight)))
+                            """ count weights """
+                            weight = t1[1:] - t1[:-1]
+                            # if sfr:
+                            #     weight = weight * star_formation_history(t1[1:])
+                            weight = weight / np.sum(weight)
+                            weight[stages1[1:] != 3] = 0
+                            
+                            # new_row = pd.DataFrame({'i': [i], 'accretor_part': [np.sum(weight)]})
+                            # df = pd.concat([df, new_row], ignore_index=True)
+                            
+                            file.write('{}\t{}\n'.format(i, np.float32(np.sum(weight))))
                             
                         # df = pd.DataFrame({'t': t1, 'stages': stages1})
                         #                 # 'P': P1, 'B': B1, 'v': v1, 'Mdot': Mdot1, 'phase': ph1,

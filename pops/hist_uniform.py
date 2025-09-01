@@ -6,7 +6,6 @@ Created on Sun Aug 31 13:11:24 2025
 @author: afoninamd
 """
 
-from mpi4py import MPI
 import sys
 import os
 import numpy as np
@@ -16,14 +15,11 @@ import pandas as pd
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from main.constants import N, output_dir
 
-comm = MPI.COMM_WORLD
-crank = comm.Get_rank()
-csize = comm.Get_size()
+csize = 960
 
-if crank == 0:
-    npy_dir = output_dir + 'npy/'
-    if not os.path.exists(npy_dir):
-        os.makedirs(npy_dir)
+npy_dir = output_dir + 'npy/'
+if not os.path.exists(npy_dir):
+    os.makedirs(npy_dir)
 
 """ Bins of the five distributions """
 Vb = np.linspace(0, 500, 51, endpoint=True)
@@ -162,6 +158,5 @@ def plot_uniform(galaxy_type='simple', field='CF', case='A', sfh=False, stage=cu
         os.mkdir(output_dir + 'figures/')
     fig.savefig(output_dir + 'figures/triangle_{galaxy_type}_{field}_{case}_sfh{sfh}_stage{cur_stage}.pdf', bbox_inches='tight')
 
-if crank == 0:
-    create_uniform()
-    plot_uniform()
+create_uniform()
+plot_uniform()
