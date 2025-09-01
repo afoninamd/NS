@@ -20,9 +20,10 @@ comm = MPI.COMM_WORLD
 crank = comm.Get_rank()
 csize = comm.Get_size()
 
-cur_dir = output_dir + 'npy/'
-if not os.path.exists(cur_dir):
-    os.mkdir(cur_dir)
+if crank == 0:
+    npy_dir = output_dir + 'npy/'
+    if not os.path.exists(npy_dir):
+        os.makedirs(npy_dir)
 
 """ Bins of the five distributions """
 Vb = np.linspace(0, 500, 51, endpoint=True)
@@ -91,11 +92,11 @@ def create_uniform():
                     #         """ add weights to the bin """
                         # except FileNotFoundError:
                         #     pass
-                np.save(cur_dir+'{}_{}_{}'.format(galaxy_type, field, case), Array)
+                np.save(npy_dir+'{}_{}_{}'.format(galaxy_type, field, case), Array)
 
 
 def plot_uniform(galaxy_type='simple', field='CF', case='A', sfh=False, stage=cur_stage):
-    loaded_array = np.load(cur_dir+'{}_{}_{}.npy'.format(galaxy_type, field, case))
+    loaded_array = np.load(npy_dir+'{}_{}_{}.npy'.format(galaxy_type, field, case))
     
     labels = ['$v_0$, km s$^{-1}$', r'log$_{10}B_0$, G', r'$R_0$, kpc', r'$z_0$, kpc', r'log$_{10}P_0$, s']
     bins_list = [Vb, Bb, Rb, Zb, Pb]

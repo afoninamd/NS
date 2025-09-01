@@ -17,7 +17,7 @@ import pandas as pd
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from pops.track import get_coordinates_velocities, evolution_galaxy_iterations
 from pops.observability import flux_to_counts_constants
-from main.evolution import gett, star_formation_history
+from main.evolution import gett
 from main.constants import galaxy_age, Gyr, N, output_dir
 
 comm = MPI.COMM_WORLD
@@ -32,6 +32,11 @@ end_idx = start_idx + vals_per_core
 if crank < remainder:
     end_idx += 1
 
+if crank == 0:
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+
 """  POPSYNTHESIS STARTS HERE  """
 
 def calculations():
@@ -39,9 +44,6 @@ def calculations():
     Performs calculations for distribution_{}.csv initial parameters,
     where {} is the number of tracks
     """
-    
-    if not os.path.exists(output_dir):
-        os.mkdir(output_dir)
 
     data = pd.read_csv('distribution_{}.csv'.format(N), sep=';')
     P = data['P']

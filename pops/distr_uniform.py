@@ -13,8 +13,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from main.constants import rgal, mw, N
-
+from main.constants import rgal, mw, N, output_dir
 
 """  CREATING THE DISTRIBUTION  """
 
