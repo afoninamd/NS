@@ -22,19 +22,22 @@ if not os.path.exists(npy_dir):
     os.makedirs(npy_dir)
 
 """ Bins of the five distributions """
-Vb = np.linspace(0, 500, 51, endpoint=True)
-Pb = np.linspace(-2, 3, 51, endpoint=True)
-Bb = np.linspace(10, 15, 51, endpoint=True)
-Zb = np.linspace(-0.5, 0.5, 51, endpoint=True)
-Rb = np.linspace(0, 20, 51, endpoint=True)
+arr_size = 51
+Vb = np.linspace(0, 500, arr_size, endpoint=True)
+Pb = np.linspace(-2, 3, arr_size, endpoint=True)
+Bb = np.linspace(10, 15, arr_size, endpoint=True)
+Zb = np.linspace(-0.5, 0.5, arr_size, endpoint=True)
+Rb = np.linspace(0, 20, arr_size, endpoint=True)
 
 cur_stage = 3
 
 def create_uniform():
-    
+    i_array = []
+    # i_array = np.zeros(arr_size)
     """ Reading the distribution data """
     df = pd.read_csv('distribution_{}.csv'.format(N), sep=';')
-    V = np.array((df['Vx']+df['Vxpec'])**2 + (df['Vy']+df['Vypec'])**2 + (df['Vz']+df['Vzpec'])**2)**0.5 / 1e5
+    # V = np.array((df['Vx']+df['Vxpec'])**2 + (df['Vy']+df['Vypec'])**2 + (df['Vz']+df['Vzpec'])**2)**0.5 / 1e5
+    V = np.array((df['Vx'])**2 + (df['Vy'])**2 + (df['Vz'])**2)**0.5 / 1e5
     P = np.log10(df['P'])  # s
     B = np.log10(df['B'])  # G
     Z = np.array(df['z'])  # kpc
@@ -53,13 +56,14 @@ def create_uniform():
     Zi[Zi>=len(Zb)-1] = len(Zb) - 2
     Ri[Ri>=len(Rb)-1] = len(Rb) - 2
     
-    for galaxy_type in ['simple', 'two_phase']:
-        for field in ['CF', 'ED']:
-            for case in ['A', 'B', 'C']:
+    for galaxy_type in ['simple']: #, 'two_phase']:
+        for field in ['CF']: #, 'ED']:
+            for case in ['D']: # 'A', 'B', 'C', 
                 Array = np.zeros([len(Vb)-1, len(Pb)-1, len(Bb)-1, len(Zb)-1, len(Rb)-1], dtype=np.float32)
                 for crank in range(csize):
                     file_name = output_dir + '{}_{}_{}_{}'.format(crank, galaxy_type, field, case)
                     data = np.loadtxt(file_name+'.txt', dtype=float)
+                    data = np.array(data)
                     try:
                         index = np.array(data[:, 0], dtype=int)
                         accretor_part = np.array(data[:, 1])
@@ -90,20 +94,29 @@ def create_uniform():
                     #         """ add weights to the bin """
                         # except FileNotFoundError:
                         #     pass
+                    # if field == 'CF' and galaxy_type == 'simple':
+                    #     for i in range(arr_size):
+                    #         if Array[Vi[i], Bi[i], Ri[i], Zi[i], Pi[i]] != 0:
+                    #             i_array = i_array.append(i)
+                            # print(i)
                 np.save(npy_dir+'{}_{}_{}'.format(galaxy_type, field, case), Array)
+    print(i_array)
 
 
-def plot_uniform(galaxy_type='simple', field='ED', case='A', sfh=False, stage=cur_stage):
+def plot_uniform(galaxy_type='simple', field='ED', case='A'):
     loaded_array = np.load(npy_dir+'{}_{}_{}.npy'.format(galaxy_type, field, case))
+    # i_array = np.numpy(range(51))
+    print(loaded_array[loaded_array!=0])
+    # print(loaded_array!=0)
     
     labels = ['$v_0$, km s$^{-1}$', r'log$_{10}B_0$, G', r'$R_0$, kpc', r'$z_0$, kpc', r'log$_{10}P_0$, s']
     bins_list = [Vb, Bb, Rb, Zb, Pb]
     
     V_counts = np.sum(loaded_array, axis=(1,2,3,4))
-    P_counts = np.sum(loaded_array, axis=(0,2,3,4))
-    B_counts = np.sum(loaded_array, axis=(0,1,3,4))
+    B_counts = np.sum(loaded_array, axis=(0,2,3,4))
+    R_counts = np.sum(loaded_array, axis=(0,1,3,4))
     Z_counts = np.sum(loaded_array, axis=(0,1,2,4))
-    R_counts = np.sum(loaded_array, axis=(0,1,2,3))
+    P_counts = np.sum(loaded_array, axis=(0,1,2,3))
     
     V_center = (Vb[1:] + Vb[:-1]) / 2
     P_center = (Pb[1:] + Pb[:-1]) / 2
@@ -120,8 +133,8 @@ def plot_uniform(galaxy_type='simple', field='ED', case='A', sfh=False, stage=cu
     plt.subplots_adjust(wspace=0.20, hspace=0.1)
     
     # vmax = 300*np.max(loaded_array)
-    # vmax = 3000
-    # vmin = np.min(loaded_array)
+    vmax = 100
+    vmin = 0
     
     for i in range(n_vars):
         for j in range(n_vars):
@@ -152,13 +165,18 @@ def plot_uniform(galaxy_type='simple', field='ED', case='A', sfh=False, stage=cu
                 # ax.pcolormesh(x, y, z, cmap='RdBu', vmin=z_min, vmax=z_max)
                 # print(np.max(counts))
                 cms = ax.pcolormesh(x_edges, y_edges, counts.T, cmap='viridis', shading='auto')
-                              # vmin=vmin, vmax=vmax)
+                                    # vmin=vmin, vmax=vmax)
             else:
                 ax.axis('off')
-    
+    cbar_ax = fig.add_axes([0.92, 0.05, 0.02, 0.9])  # [left, bottom, width, height]
+    fig.colorbar(cms, cax=cbar_ax)
     if not os.path.exists(output_dir + 'figures/'):
         os.mkdir(output_dir + 'figures/')
-    fig.savefig(output_dir + 'figures/triangle_{galaxy_type}_{field}_{case}_sfh{sfh}_stage{cur_stage}.pdf', bbox_inches='tight')
+    fig.suptitle('{}_{}_{}'.format(galaxy_type, field, case))
+    fig.savefig(output_dir + f'figures/triangle_{galaxy_type}_{field}_{case}.pdf', bbox_inches='tight')
 
-create_uniform()
-plot_uniform()
+# create_uniform()
+for galaxy_type in ['simple']:#, 'two_phase']:
+    for field in ['CF']:#, 'ED']:
+        for case in ['D']: #'A', 'B', 'C', 'D']:
+            plot_uniform(galaxy_type, field, case)

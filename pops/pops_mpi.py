@@ -55,12 +55,15 @@ def calculations():
     x = data['x']
     y = data['y']
     z = data['z']
-    Vxpec = data['Vxpec']
-    Vypec = data['Vypec']
-    Vzpec = data['Vzpec']
-    vx = (Vx+Vxpec) / 1e5
-    vy = (Vy+Vypec) / 1e5
-    vz = (Vz+Vzpec) / 1e5
+    # Vxpec = data['Vxpec']
+    # Vypec = data['Vypec']
+    # Vzpec = data['Vzpec']
+    vx = Vx / 1e5
+    vy = Vy / 1e5
+    vz = Vz / 1e5
+    # vx = (Vx+Vxpec) / 1e5
+    # vy = (Vy+Vypec) / 1e5
+    # vz = (Vz+Vzpec) / 1e5
                 
     for i in (range(start_idx, end_idx)): #tqdm
     

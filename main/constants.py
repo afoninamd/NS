@@ -21,7 +21,7 @@ from astropy.cosmology import default_cosmology
 # mw = gp.BovyMWPotential2014() # from Bovy 2015 (getpot is in the bottom)
 mw = gp.MilkyWayPotential()
 
-N = 10_000  # the number of tracks overall
+N = 1_000_0000  # the number of tracks overall
 output_dir = 'result/uniform/'
 
 """ Physical constants """

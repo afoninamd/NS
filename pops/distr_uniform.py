@@ -179,9 +179,15 @@ def distribution(N=100):
     
     df = pd.DataFrame({'P': P_array, 'B': B_array,
                        'x': distrX[0], 'y': distrX[1], 'z': distrX[2],
-                       'Vx': distrV[0], 'Vy': distrV[1], 'Vz': distrV[2],
-                       'Vxpec': distrX[3], 'Vypec': distrX[4],
-                       'Vzpec': distrX[5]})
+                       'Vx': distrV[0], 'Vy': distrV[1], 'Vz': distrV[2]}) #,
+                       #'Vxpec': distrX[3], 'Vypec': distrX[4],
+                      # 'Vzpec': distrX[5]})
+    
+    # df = df.style.format({'P': "{:.5g}",'B': "{:.5g}",
+    #                       'x': "{:.5g}", 'y': "{:.5g}", 'z': "{:.5g}",
+    #                       'Vx': "{:.5g}", 'Vy': "{:.5g}", 'Vz': "{:.5g}",
+    #                       'Vxpec': "{:.5g}", 'Vypec': "{:.5g}",
+    #                       'Vzpec': "{:.5g}"})
     
     pd.DataFrame.to_csv(df, 'distribution_{}.csv'.format(N), sep=';')
 
@@ -190,15 +196,17 @@ def test_distribution(N):
     """ Pictures of generated distribution """
     fig, ax = plt.subplots()
     data = pd.read_csv('distribution_{}.csv'.format(N), sep=';')
-    # Array = (data['Vx']**2 + data['Vy']**2 + data['Vz']**2)**0.5
-    Array = data['z']
+    Array = (data['Vx']**2 + data['Vy']**2 + data['Vz']**2)**0.5
+    # Array = ((data['Vx']+data['Vxpec'])**2 + (data['Vy']+data['Vypec'])**2 + (data['Vz']+data['Vzpec'])**2)**0.5
+    # Array = data['z']
     # Array = np.log10(Array)
     # print(np.mean(Array), np.std(Array))
     # Array = (data['x']**2 + data['y']**2)**0.5
     
-    plt.hist(Array, bins=10, alpha=0.5)
+    plt.hist(Array, bins=20, alpha=0.5)
     # plt.scatter(data['x'], data['y'])
 
+# test_distribution(N)
 
 if not os.path.exists(f'distribution_{N}.csv'):
     print('new distribution is in process')
