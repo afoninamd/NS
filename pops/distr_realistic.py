@@ -28,7 +28,7 @@ def B_pulsar(N: int):
 def B_magnetar(N: int):
     """ https://www.physics.mcgill.ca/~pulsar/magnetar/main.html"""
     # use the real data and choose only high-field magnetars B > 1e13 G
-    data = pd.read_csv("/home/afoninamd/Documents/NS/data/TabO1.csv")
+    data = pd.read_csv("data/TabO1.csv")
     B_tab = np.log10(np.array(data['B']))
     B_tab = B_tab[B_tab>13]
     # derive the mean and sigma from the real data
