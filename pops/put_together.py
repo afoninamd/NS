@@ -31,12 +31,14 @@ def create_one_txt():
                         for file_name in glob.glob(pattern):
                             data = np.loadtxt(file_name, delimiter='\t')
                             # i_array = i_array.append(data[:, 0].astype(int))
-                            i_array = np.append(i_array, data[:, 0])
-                            # break
-                            wE = np.append(wE, data[:, 1])
-                            wP = np.append(wP, data[:, 2])
-                            wA = np.append(wA, data[:, 3])
-                            wG = np.append(wG, data[:, 4])
+                            try:
+                                i_array = np.append(i_array, data[:, 0])
+                                wE = np.append(wE, data[:, 1])
+                                wP = np.append(wP, data[:, 2])
+                                wA = np.append(wA, data[:, 3])
+                                wG = np.append(wG, data[:, 4])
+                            except IndexError:
+                                pass
                         
                         with open(output_dir + 'all.txt', 'a') as file:
                             # print('writing')
