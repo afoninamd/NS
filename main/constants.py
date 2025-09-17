@@ -21,8 +21,8 @@ from astropy.cosmology import default_cosmology
 # mw = gp.BovyMWPotential2014() # from Bovy 2015 (getpot is in the bottom)
 mw = gp.MilkyWayPotential()
 
-N = 1_000_0000  # the number of tracks overall
-output_dir = 'result/uniform/'
+N = 100  # the number of tracks overall
+output_dir = 'result/realistic/'
 
 """ Physical constants """
 c = const.c.cgs.value                  # speed of light in vacuum,   [cm / s]
@@ -171,10 +171,10 @@ tmult = 1.0
 # mpl.rcParams['lines.linewidth'] = lw0 * tmult
 # mpl.rcParams['lines.markersize'] = 4 * tmult
 # # tmult = 0.1
-mpl.rcParams['axes.labelsize'] = 16 * tmult
-mpl.rcParams['xtick.labelsize'] = 16 * tmult
-mpl.rcParams['ytick.labelsize'] = 16 * tmult
-mpl.rcParams['legend.fontsize'] = 16 * tmult
+mpl.rcParams['axes.labelsize'] = 14 * tmult
+mpl.rcParams['xtick.labelsize'] = 14 * tmult
+mpl.rcParams['ytick.labelsize'] = 14 * tmult
+mpl.rcParams['legend.fontsize'] = 14 * tmult
 # fontsize = 16 * tmult
 # mpl.rcParams['legend.frameon'] = True
 # mpl.rcParams["legend.fancybox"] = False

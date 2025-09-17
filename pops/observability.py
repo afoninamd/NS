@@ -170,7 +170,7 @@ def one_observability(t1, stages1, x1, y1, z1, B1, Mdot1,
     r = kpc * ((x1-0)**2 + (y1-R0)**2 + (z1-0)**2)**0.5
     F0_array = L_array / (4*np.pi*r**2)
     
-    idx = np.logical_and(stages1==3, F0_array>1e-16)  # temporary arrays corresponding to accretion
+    idx = np.logical_and(stages1==3, F0_array>1e-15)  # temporary arrays corresponding to accretion
     lenga = len(t1[idx])
     Tt = np.zeros(lenga)  # effective temperature
     f0t = np.zeros(lenga)  # flux no absorption
