@@ -97,6 +97,7 @@ def calculations(star_type):
     if crank == 0:
         os.makedirs(output_dir + 'feather', exist_ok=True)
         os.makedirs(output_dir + 'temp', exist_ok=True)
+    comm.Barrier()
         
     P = data['P']
     B = data['B']
