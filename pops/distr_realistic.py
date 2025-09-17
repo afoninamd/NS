@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from main.evolution import gett, evolution, getB, gettAttractor
 from main.constants import rgal, mw, N
-from time import time
+# from time import time
 
 
 def B_pulsar(N: int):
