@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from main.evolution import gett, evolution, getB, gettAttractor
 from main.constants import rgal, mw, N
+from time import time
 
 
 def B_pulsar(N: int):
@@ -329,7 +330,10 @@ def test_distribution(kind='magnetar'):
 # fig, ax = plt.subplots()
 # test_distribution()
 
-distribution(N=N*9//10, kind='pulsar')
-distribution(N=N//10, kind='magnetar')
+# distribution(N=N*9//10, kind='pulsar')
+# distribution(N=N//10, kind='magnetar')
 
+time0 = time()
+distribution(N=1000, kind='magnetar')
+print(time() - time0)
 # test_distribution(kind='magnetar')
