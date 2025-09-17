@@ -64,14 +64,14 @@ def illustration_roman():
 
 """  POPSYNTHESIS STARTS HERE  """
 
-arr_size = 100
-Rbins = np.linspace(0, 20, 101) # from the GC
-rbins = np.linspace(0, 10, 101) # from the Sun
-zbins = np.linspace(0, 5, 101)
-fbins = 10**np.linspace(-15, -5, 101)
-cbins = 10**np.linspace(-4, 6, 101)
-vbins = np.linspace(0, 500, 101) * 1e5
-Tbins = 10**np.linspace(4, 9, 101)
+arr_size = 2000
+Rbins = np.linspace(0, 20, 2001) # from the GC
+rbins = np.linspace(0, 20, 2001) # from the Sun better for 0 to 20
+zbins = np.linspace(0, 5, 2001)
+fbins = 10**np.linspace(-15, -5, 2001)
+cbins = 10**np.linspace(-4, 6, 2001)
+vbins = np.linspace(0, 500, 2001) * 1e5
+Tbins = 10**np.linspace(5, 9, 2001) # better from 5 to 8
 
 def calculations(star_type):
    
