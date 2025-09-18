@@ -65,13 +65,13 @@ def illustration_roman():
 """  POPSYNTHESIS STARTS HERE  """
 
 arr_size = 2000
-Rbins = np.linspace(0, 20, 2001) # from the GC
-rbins = np.linspace(0, 20, 2001) # from the Sun better for 0 to 20
-zbins = np.linspace(0, 5, 2001)
-fbins = 10**np.linspace(-15, -5, 2001)
-cbins = 10**np.linspace(-4, 6, 2001)
-vbins = np.linspace(0, 500, 2001) * 1e5
-Tbins = 10**np.linspace(5, 9, 2001) # better from 5 to 8
+Rbins = np.linspace(0, 20, arr_size+1) # from the GC
+rbins = np.linspace(0, 20, arr_size+1) # from the Sun better for 0 to 20
+zbins = np.linspace(0, 5, arr_size+1)
+fbins = 10**np.linspace(-15, -5, arr_size+1)
+cbins = 10**np.linspace(-4, 6, arr_size+1)
+vbins = np.linspace(0, 500, arr_size+1) * 1e5
+Tbins = 10**np.linspace(5, 9, arr_size+1) # better from 5 to 8
 
 def calculations(star_type):
    
@@ -132,10 +132,20 @@ def calculations(star_type):
                     #                     'f0': f0counts, 'f1': f1counts,
                     #                     'c0': c0counts, 'c1': c1counts})
                     df0 = pd.DataFrame({'R': np.zeros(arr_size),
+                                        'R-2': np.zeros(arr_size),
+                                        'R-1': np.zeros(arr_size),
                                         'r': np.zeros(arr_size),
+                                        'r-2': np.zeros(arr_size),
+                                        'r-1': np.zeros(arr_size),
                                         'z': np.zeros(arr_size),
+                                        'z-2': np.zeros(arr_size),
+                                        'z-1': np.zeros(arr_size),
                                         'v': np.zeros(arr_size),
+                                        'v-2': np.zeros(arr_size),
+                                        'v-1': np.zeros(arr_size),
                                         'T': np.zeros(arr_size),
+                                        'T-2': np.zeros(arr_size),
+                                        'T-1': np.zeros(arr_size),
                                         'f0': np.zeros(arr_size),
                                         'f1': np.zeros(arr_size),
                                         'c0': np.zeros(arr_size),
@@ -227,22 +237,50 @@ def calculations(star_type):
                                                               nu, deltanu, cross, Seff)
                         if len(c0[c0>1e-4]) > 0:
                             
+                            weight1 = np.zeros(len(weight))
+                            weight2 = np.zeros(len(weight))
+                            weight1[::] = weight[::]
+                            weight2[::] = weight[::]
+                            weight1[c1[1:]<1e-1] = 0
+                            weight2[c1[1:]<1e-2] = 0
+                            
                             R = (x1[1:]**2+y1[1:]**2+z1[1:]**2)**0.5
                             Rcounts, _ = np.histogram(R, bins=Rbins, weights=weight)
+                            R2counts, _ = np.histogram(R, bins=Rbins, weights=weight2)
+                            R1counts, _ = np.histogram(R, bins=Rbins, weights=weight1)
+                            
                             r = (x1[1:]**2+(y1[1:]-R0)**2+z1[1:]**2)**0.5
                             rcounts, _ = np.histogram(r, bins=rbins, weights=weight)
-                            zcounts, _ = np.histogram(z1[1:], bins=zbins, weights=weight)
-                            vcounts, _ = np.histogram(v1[1:], bins=vbins, weights=weight)
-                            Tcounts, _ = np.histogram(T[1:], bins=Tbins, weights=weight)
+                            r2counts, _ = np.histogram(r, bins=rbins, weights=weight2)
+                            r1counts, _ = np.histogram(r, bins=rbins, weights=weight1)
+                            
+                            ztemp = z1[1:]
+                            zcounts, _ = np.histogram(ztemp, bins=zbins, weights=weight)
+                            z2counts, _ = np.histogram(ztemp, bins=zbins, weights=weight2)
+                            z1counts, _ = np.histogram(ztemp, bins=zbins, weights=weight1)
+                            
+                            vtemp = v1[1:]
+                            vcounts, _ = np.histogram(vtemp, bins=vbins, weights=weight)
+                            v2counts, _ = np.histogram(vtemp, bins=vbins, weights=weight2)
+                            v1counts, _ = np.histogram(vtemp, bins=vbins, weights=weight1)
+                            
+                            Ttemp = T[1:]
+                            Tcounts, _ = np.histogram(Ttemp, bins=Tbins, weights=weight)
+                            T2counts, _ = np.histogram(Ttemp, bins=Tbins, weights=weight2)
+                            T1counts, _ = np.histogram(Ttemp, bins=Tbins, weights=weight1)
+                            
                             f0counts, _ = np.histogram(f0[1:], bins=fbins, weights=weight)
                             f1counts, _ = np.histogram(f1[1:], bins=fbins, weights=weight)
                             c0counts, _ = np.histogram(c0[1:], bins=cbins, weights=weight)
                             c1counts, _ = np.histogram(c1[1:], bins=cbins, weights=weight)
                             
-                            df = pd.DataFrame({'R': Rcounts, 'r': rcounts, 'z': zcounts,
-                                                'v': vcounts, 'T': Tcounts,
-                                                'f0': f0counts, 'f1': f1counts,
-                                                'c0': c0counts, 'c1': c1counts})
+                            df = pd.DataFrame({'R': Rcounts, 'R-2': R2counts, 'R-1': R1counts,
+                                               'r': rcounts, 'r-2': r2counts, 'r-1': r1counts,
+                                               'z': zcounts, 'z-2': z2counts, 'z-1': z1counts,
+                                               'v': vcounts, 'v-2': v2counts, 'v-1': v1counts,
+                                               'T': Tcounts, 'T-2': T2counts, 'T-1': T1counts,
+                                               'f0': f0counts, 'f1': f1counts,
+                                               'c0': c0counts, 'c1': c1counts})
                             float_cols = df.select_dtypes(include=['float64']).columns
                             df[float_cols] = df[float_cols].astype('float32')
                             
@@ -256,21 +294,41 @@ def calculations(star_type):
                             roman = np.zeros(len(x1))
                             roman[1:][cond] = 1
                             weight = weight * roman[1:]
+                            weight1 = weight1 * roman[1:]
+                            weight2 = weight2 * roman[1:]
                             
                             Rcounts, _ = np.histogram(R, bins=Rbins, weights=weight)
+                            R2counts, _ = np.histogram(R, bins=Rbins, weights=weight2)
+                            R1counts, _ = np.histogram(R, bins=Rbins, weights=weight1)
+                            
                             rcounts, _ = np.histogram(r, bins=rbins, weights=weight)
-                            zcounts, _ = np.histogram(z1[1:], bins=zbins, weights=weight)
-                            vcounts, _ = np.histogram(v1[1:], bins=vbins, weights=weight)
-                            Tcounts, _ = np.histogram(T[1:], bins=Tbins, weights=weight)
+                            r2counts, _ = np.histogram(r, bins=rbins, weights=weight2)
+                            r1counts, _ = np.histogram(r, bins=rbins, weights=weight1)
+                            
+                            zcounts, _ = np.histogram(ztemp, bins=zbins, weights=weight)
+                            z2counts, _ = np.histogram(ztemp, bins=zbins, weights=weight2)
+                            z1counts, _ = np.histogram(ztemp, bins=zbins, weights=weight1)
+                            
+                            vcounts, _ = np.histogram(vtemp, bins=vbins, weights=weight)
+                            v2counts, _ = np.histogram(vtemp, bins=vbins, weights=weight2)
+                            v1counts, _ = np.histogram(vtemp, bins=vbins, weights=weight1)
+                            
+                            Tcounts, _ = np.histogram(Ttemp, bins=Tbins, weights=weight)
+                            T2counts, _ = np.histogram(Ttemp, bins=Tbins, weights=weight2)
+                            T1counts, _ = np.histogram(Ttemp, bins=Tbins, weights=weight1)
+                            
                             f0counts, _ = np.histogram(f0[1:], bins=fbins, weights=weight)
                             f1counts, _ = np.histogram(f1[1:], bins=fbins, weights=weight)
                             c0counts, _ = np.histogram(c0[1:], bins=cbins, weights=weight)
                             c1counts, _ = np.histogram(c1[1:], bins=cbins, weights=weight)
                             
-                            df = pd.DataFrame({'R': Rcounts, 'r': rcounts, 'z': zcounts,
-                                                'v': vcounts, 'T': Tcounts,
-                                                'f0': f0counts, 'f1': f1counts,
-                                                'c0': c0counts, 'c1': c1counts})
+                            df = pd.DataFrame({'R': Rcounts, 'R-2': R2counts, 'R-1': R1counts,
+                                               'r': rcounts, 'r-2': r2counts, 'r-1': r1counts,
+                                               'z': zcounts, 'z-2': z2counts, 'z-1': z1counts,
+                                               'v': vcounts, 'v-2': v2counts, 'v-1': v1counts,
+                                               'T': Tcounts, 'T-2': T2counts, 'T-1': T1counts,
+                                               'f0': f0counts, 'f1': f1counts,
+                                               'c0': c0counts, 'c1': c1counts})
                             float_cols = df.select_dtypes(include=['float64']).columns
                             df[float_cols] = df[float_cols].astype('float32')
                             
