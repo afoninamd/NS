@@ -18,7 +18,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from pops.track import get_coordinates_velocities, evolution_galaxy_iterations
 from pops.observability import flux_to_counts_constants, one_observability
 from main.evolution import gett, star_formation_history
-from main.constants import galaxy_age, N, output_dir, R0
+from main.constants import galaxy_age, N, output_dir, R0, arr_size
 
 comm = MPI.COMM_WORLD
 crank = comm.Get_rank()
@@ -64,7 +64,6 @@ def illustration_roman():
 
 """  POPSYNTHESIS STARTS HERE  """
 
-arr_size = 2000
 Rbins = np.linspace(0, 20, arr_size+1) # from the GC
 rbins = np.linspace(0, 20, arr_size+1) # from the Sun better for 0 to 20
 zbins = np.linspace(0, 5, arr_size+1)
@@ -87,7 +86,7 @@ def calculations(star_type):
     
     vals_per_core = N1 // csize
     remainder = N1 % csize
-    data = pd.read_csv('distribution_{}_{}.csv'.format(star_type, N1), sep=';')
+    data = pd.read_csv(output_dir + 'distribution_{}_{}.csv'.format(star_type, N1), sep=';')
 
     start_idx = crank * vals_per_core + min(crank, remainder)
     end_idx = start_idx + vals_per_core
@@ -288,7 +287,6 @@ def calculations(star_type):
                                                             case, star_type)
                             df0 = pd.read_feather(output_dir + name + '.feather')
                             feather.write_feather(df+df0, output_dir + name + '.feather')
-                            
                             
                             """ For Erosita + Roman """
                             roman = np.zeros(len(x1))

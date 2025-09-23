@@ -21,8 +21,9 @@ from astropy.cosmology import default_cosmology
 # mw = gp.BovyMWPotential2014() # from Bovy 2015 (getpot is in the bottom)
 mw = gp.MilkyWayPotential()
 
-N = 1_000_000  # the number of tracks overall
+N = 10_000_000  # the number of tracks overall
 output_dir = 'result/realistic/'
+arr_size = 2000
 
 """ Physical constants """
 c = const.c.cgs.value                  # speed of light in vacuum,   [cm / s]

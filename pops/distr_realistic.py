@@ -5,6 +5,7 @@ Created on Sun Aug  3 11:57:02 2025
 
 @author: afoninamd
 """
+from mpi4py import MPI
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
@@ -14,8 +15,16 @@ import scipy as sp
 import matplotlib.pyplot as plt
 import pandas as pd
 from main.evolution import gett, evolution, getB, gettAttractor
-from main.constants import rgal, mw, N
+from main.constants import rgal, mw, N, output_dir
 # from time import time
+
+comm = MPI.COMM_WORLD
+crank = comm.Get_rank()
+csize = comm.Get_size()
+
+if crank == 0:
+    os.makedirs(output_dir + 'distr', exist_ok=True)
+comm.Barrier()
 
 
 def B_pulsar(N: int):
@@ -258,7 +267,7 @@ def XYZ(N=1, rlim=rgal, arms=False, Yao2017=True):
 
 def distr(f, Nmax):
     """ Generates distribution of the value from the function f """
-    print(str(f)[10] + " distribution")
+    # print(str(f)[10] + " distribution")
     if f == XYZ:
         x, y, z, v_x, v_y, v_z = XYZ(Nmax)
         array = np.zeros((6, Nmax))
@@ -307,9 +316,48 @@ def distribution(N=100, kind='pulsar'):
     pd.DataFrame.to_csv(df, 'distribution_{}_{}.csv'.format(kind, N), sep=';')
 
 
+def distribution_mpi(N=100, kind='magnetar', crank=crank):
+    """ Creating arrays of p, B, M, V """
+    vals_per_core = N // csize
+    remainder = N % csize
+
+    start_idx = crank * vals_per_core + min(crank, remainder)
+    end_idx = start_idx + vals_per_core
+    if crank < remainder:
+        end_idx += 1
+    N = end_idx - start_idx
+    
+    distrV = distr(V, N)
+    distrX = distr(XYZ, N) # XYZ and peculiar VxVyVz
+    
+    if kind == 'pulsar':
+        P_array = distr(P_pulsar, N)
+        B_array = distr(B_pulsar, N)
+    elif kind == 'magnetar':
+        B_array_initial = distr(B_magnetar, N)
+        P_array_initial = distr(P_pulsar, N)
+        P_array = P_magnetar(P_array_initial, B_array_initial)
+        B_array = B_array_initial / np.exp(3) # after the Hall attractor
+    
+    df = pd.DataFrame({'P': P_array, 'B': B_array,
+                       'x': distrX[0], 'y': distrX[1], 'z': distrX[2],
+                       'mode': distrV[3],
+                       'Vx': distrV[0], 'Vy': distrV[1], 'Vz': distrV[2],
+                       'Vxpec': distrX[3], 'Vypec': distrX[4],
+                       'Vzpec': distrX[5]})
+    if kind == 'magnetar':
+        df['P_in'] = P_array_initial
+        df['B_in'] = B_array_initial
+    pd.DataFrame.to_csv(df, output_dir + 'distr/distribution_{}_{}_{}.csv'.format(kind, N, crank), sep=';')
+
+
+distribution_mpi(N=N*9//10, kind='pulsar')
+distribution_mpi(N=N//10, kind='magnetar')
+
+
 def test_distribution(kind='magnetar'):
     # for kind in ['pulsar', 'magnetar']:
-    data = pd.read_csv('distribution_{}.csv'.format(kind), sep=';')
+    data = pd.read_csv('result/distribution_{}.csv'.format(kind), sep=';')
     # Array = (data['Vx']**2 + data['Vy']**2 + data['Vz']**2)**0.5
     Array = data['z']
     # Array = np.log10(Array)
@@ -330,8 +378,8 @@ def test_distribution(kind='magnetar'):
 # fig, ax = plt.subplots()
 # test_distribution()
 
-distribution(N=N*9//10, kind='pulsar')
-distribution(N=N//10, kind='magnetar')
+# distribution(N=N*9//10, kind='pulsar')
+# distribution(N=N//10, kind='magnetar')
 
 # time0 = time()
 # distribution(N=1000, kind='magnetar')
