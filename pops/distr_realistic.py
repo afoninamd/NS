@@ -113,33 +113,37 @@ def V(N: int):
 
 
 def Vpec(x: np.array, y: np.array, N: np.array, rlim=rgal):
-    """ One set of peculiar velocities """
-    D = 6e-7 # (km/s)^2 / year
-    tau = 0 # year, progenitor star age
-    A = 0.7
-    c_0 = 10 # km/s
+    # """ One set of peculiar velocities """
+    # D = 6e-7 # (km/s)^2 / year
+    # tau = 0 # year, progenitor star age
+    # A = 0.7
+    # c_0 = 10 # km/s
     
-    """ Defining sigmas for distributions """
-    pot = mw
+    # """ Defining sigmas for distributions """
+    # pot = mw
     r = (x**2 + y**2)**0.5
-    dr = rlim / N
-    dx = dr / r * x
-    dy = dr / r * y
+    # dr = rlim / N
+    # dx = dr / r * x
+    # dy = dr / r * y
     
-    """ Reshaped position array """
+    # """ Reshaped position array """
     
-    pos_1 = np.array([x+dx, y+dy, np.zeros(N)])
-    pos_2 = np.array([x-dx, y-dy, np.zeros(N)])
+    # pos_1 = np.array([x+dx, y+dy, np.zeros(N)])
+    # pos_2 = np.array([x-dx, y-dy, np.zeros(N)])
     
-    cvel_1 = pot.circular_velocity(pos_1)[0].value 
-    cvel_2 = pot.circular_velocity(pos_2)[0].value
-    Omega = pot.circular_velocity([x, y, np.zeros(N)])[0].value
-    diffOmega = (cvel_1 - cvel_2) / (2 * dr) / r
-    kappa = 2 * Omega * (1 + r / (2 * Omega) * diffOmega)**0.5
-    B = kappa / (2 * Omega)
-    c_r = (c_0**2 + D * tau) / (1 + A**2 + B**2)
-    c_phi = B * c_r
-    c_z = A * c_r
+    # cvel_1 = pot.circular_velocity(pos_1)[0].value 
+    # cvel_2 = pot.circular_velocity(pos_2)[0].value
+    # Omega = pot.circular_velocity([x, y, np.zeros(N)])[0].value
+    # diffOmega = (cvel_1 - cvel_2) / (2 * dr) / r
+    # kappa = 2 * Omega * (1 + r / (2 * Omega) * diffOmega)**0.5
+    # B = kappa / (2 * Omega)
+    # c_r = (c_0**2 + D * tau) / (1 + A**2 + B**2)
+    # c_phi = B * c_r
+    # c_z = A * c_r
+    
+    c_r = 10
+    c_phi = 10
+    c_z = 8
     
     """ Velocities generation """
     v_r = np.random.normal(0, scale=c_r)
@@ -354,6 +358,25 @@ def distribution_mpi(N=100, kind='magnetar', crank=crank):
 distribution_mpi(N=N*9//10, kind='pulsar')
 distribution_mpi(N=N//10, kind='magnetar')
 
+# def Vpec(x: np.array, y: np.array, N: np.array, rlim=rgal):
+#     r = (x**2 + y**2)**0.5
+#     c_r = 10
+#     c_phi = 10
+#     c_z = 8
+#     print(c_r, c_phi, c_z)
+#     sin_phi = y / r
+#     cos_phi = x / r
+#     v_r = np.random.normal(0, c_r, 10000)
+#     v_phi = np.random.normal(0, c_phi, 10000)
+#     v_z = np.random.normal(0, c_z, 10000)
+#     v_x = v_r * cos_phi - v_phi * sin_phi
+#     v_y = v_r * sin_phi + v_phi * cos_phi
+#     dist = (v_x**2 + v_y**2 + v_z**2)**0.5
+#     # dist = v_
+#     # print(np.std(dist))
+#     plt.hist(dist)
+
+# Vpec(np.array([8]), np.array([0]), 1)
 
 def test_distribution(kind='magnetar'):
     # for kind in ['pulsar', 'magnetar']:

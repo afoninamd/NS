@@ -22,19 +22,9 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from main.constants import arr_size
 
 path = '/home/afoninamd/Downloads/'
-# res_name = 'realistic1/'
-# arr_size = 100
-# Rbins = np.linspace(0, 20, 101) # from the GC
-# rbins = np.linspace(0, 10, 101) # from the Sun
-# zbins = np.linspace(0, 5, 101)
-# fbins = 10**np.linspace(-15, -5, 101)
-# cbins = 10**np.linspace(-4, 6, 101)
-# vbins = np.linspace(0, 500, 101) * 1e5
-# Tbins = 10**np.linspace(4, 9, 101)
-
-
-path = '/home/afoninamd/Documents/project/pops/result/realistic/'
-res_name = ''
+res_name = 'realistic2/'
+# path = '/home/afoninamd/Documents/project/pops/result/realistic/'
+# res_name = ''
 Rbins = np.linspace(0, 20, arr_size+1) # from the GC
 rbins = np.linspace(0, 20, arr_size+1) # from the Sun better for 0 to 20
 zbins = np.linspace(0, 5, arr_size+1)
@@ -66,9 +56,10 @@ Tbins = 10**np.linspace(5, 9, arr_size+1) # better from 5 to 8
 # print(cbins[20])
 
 def pdfs():
+    os.makedirs('counts/', exist_ok=True)
     for galaxy_type in ['simple','two_phase']:#, 'two_phase']:
         for field in ['CF', 'ED']:#, 'ED']:
-            for case in ['A', 'B', 'C']: #, 'D']:
+            for case in ['A', 'B', 'C', 'D']:
                 fig, ax = plt.subplots()
                 ax.vlines(x=1e-2, ymin=1e-2, ymax=1e7, color='black', alpha=0.5, ls='--')
                 
@@ -164,9 +155,10 @@ def readtxt():
 
 
 def pdfs1():
+    os.makedirs('counts/', exist_ok=True)
     for galaxy_type in ['simple','two_phase']:#, 'two_phase']:
         for field in ['CF', 'ED']:#, 'ED']:
-            for case in ['A', 'B', 'C']: #, 'D']:
+            for case in ['A', 'B', 'C', 'D']:
                 fig, ax = plt.subplots()
                 ax.vlines(x=1e-2, ymin=1e-2, ymax=1e7, color='black', alpha=0.5, ls='--')
                 
@@ -192,9 +184,9 @@ def pdfs1():
                     data_c0 = np.cumsum(data_c0[::-1])[::-1]
                     
                     alpha = 1
-                    N = 300
+                    N = 10_000_000
                     norm = 300_000_000 // N
-                    idx = 2 # 399 for 2000
+                    idx = 399 # 399 for 2000
                     if add_string == '':
                         color = 'C0'
                         label = 'erosita'
@@ -272,4 +264,331 @@ def plotr():
                     ax.fill_between(arr[1:], y2= norm*(data_1+std_1), y1 = norm*(data_1), color='C0', alpha=0.1)
                     ax.fill_between(arr[1:], y2= norm*(data_2+std_2), y1 = norm*(data_2), color='C1', alpha=0.1)
 
-# plotr()
+
+def rebin(nrebin=40): # new number of bins
+    plt.rcParams['font.size'] = 16
+    plt.rcParams['text.usetex'] = True
+    os.makedirs('counts_rebinned/', exist_ok=True)
+     
+    fig, axes = plt.subplots(figsize=(12 , 10), nrows=2, ncols=2)
+    
+    axes[0,0].set_title(r'One phase ISM, constant field')
+    axes[0,1].set_title(r'One phase ISM, exponentially decaying field')
+    axes[1,0].set_title(r'Two phase ISM, constant field')
+    axes[1,1].set_title(r'Two phase ISM, exponentially decaying field')
+                
+    for i in range(2):
+        galaxy_type = ['simple','two_phase'][i]
+        for j in range(2):
+            field = ['CF', 'ED'][j]
+            lss = ['-', '--', '-.']
+            cases = ['A', 'B', 'C', 'D']
+            ax = axes[i, j]
+            axes[i, 0].set_ylabel(r'$N($CR$ > $CR$_0)$', fontsize=20)
+            axes[1, j].set_xlabel(r'CR$_0$, cts s$^{-1}$', fontsize=20)
+            ax.vlines(x=1e-2, ymin=1e-2, ymax=1e7, color='grey', alpha=0.2, ls='-', lw=2)
+            # ax.set_title('galaxy is {}, field {}'.format(galaxy_type, field))
+            ax.tick_params(axis='both', labelsize=16)
+            for k in range(3):
+                ls = lss[k]
+                case = cases[k]
+                file_name = '{}_{}_{}_erosita{}_std'.format(galaxy_type, field,
+                                                case, '')
+                data_std = pd.read_feather(path + res_name + file_name + '.feather')
+                data_c1_std = np.array(data_std['c1'])
+                std_c1 = data_c1_std #np.cumsum(data_c1_std[::-1])[::-1]
+                file_name = '{}_{}_{}_erosita{}_sum'.format(galaxy_type, field,
+                                                case, '')
+                data = pd.read_feather(path + res_name + file_name + '.feather')
+                
+                bins = cbins #arr[1:]
+                
+                data_c1 = np.array(data['c1'])
+                data_c1 = np.cumsum(data_c1[::-1])[::-1]
+                
+                n_in_bin = len(data_c1)//nrebin
+                data_c1_temp = np.zeros(nrebin)
+                std_c1_temp = np.zeros(nrebin)
+                
+                std_c1_squared = std_c1**2
+                for itemp in range(n_in_bin):
+                    data_c1_temp += data_c1[itemp::n_in_bin]
+                    std_c1_temp += std_c1_squared[itemp::n_in_bin]
+                data_c1 = data_c1_temp / n_in_bin
+                bins = bins[::n_in_bin]
+                bins = bins[1::]
+                
+                std_c1 = std_c1_temp**0.5
+                
+                alpha = 0.5
+                N = 10_000_000
+                norm = 300_000_000 // N
+                idx = nrebin // 5 - 1 # 400 for 2000
+                color = ['C3', 'C2', 'C0', 'C3'][k]
+                # ax.text(1.2e-2, 1e5, '{:.0f} NSs with CR > 1e-2'.format(norm*data_c1[idx]), color='C0', fontsize=14)
+                idx1 = nrebin // 10 - 1
+                if case == 'C':
+                    diagonal = bins**(-1) * data_c1[idx1] * bins[idx1]
+                    ax.plot(bins[:idx+1], norm*diagonal[:idx+1], ls='--', color='grey')
+                if (case == 'A' and (i == 0 or j == 0)) or (case == 'B' and i == 1 and j == 1):# or (case == 'C' and k == 3):
+                    diagonal = bins**(-3/2) * data_c1[19] * bins[19]**(3/2)
+                    # print(norm*data_c1[19], bins[19])
+                    ax.plot(bins[15:], norm*diagonal[15:], ls='--', color='grey')
+                    
+             
+                    
+                
+                ax.plot(bins, norm*data_c1, color=color, alpha=alpha, ls=ls, lw=1, markersize=3, marker='o', label=case)
+                
+                # ax.plot(arr[1:], norm*data_c0, color=color, alpha=alpha)
+                # ax.plot(bins, norm*data_c1, color=color, alpha=alpha, ls=ls, lw=1, markersize=3, marker='o', label=case)
+                # ax.plot([bins[idx]], [norm*data_c1[idx]], color=color, markersize=5, marker='o', label=case)
+                
+                ax.fill_between(bins, y1 = norm*(data_c1-std_c1), y2 = norm*(data_c1), color=color, alpha=0.1)
+                ax.fill_between(bins, y2 = norm*(data_c1+std_c1), y1 = norm*(data_c1), color=color, alpha=0.1)
+                    
+                ax.set_yscale('log')
+                ax.set_xscale('log')
+                ax.set_xlim([1e-3, 1e1])
+                ax.set_ylim([1e-1, 1e5])
+            ax.legend(title=r'Propeller model')
+    fig.tight_layout()
+        # break
+        # print(len(std_c1[std_c1!=0]))
+    plt.subplots_adjust(wspace=0.4, hspace=0.4, left=0.1, right=0.9, top=0.9, bottom=0.1)
+    plt.tight_layout()
+
+    fig.savefig('counts_rebinned/counts.pdf', format='pdf')
+
+
+def plotrrebin(nrebin=40): # new number of bins
+    plt.rcParams['font.size'] = 16
+    plt.rcParams['text.usetex'] = True
+    os.makedirs('counts_rebinned/', exist_ok=True)
+    # fig, axes = plt.subplots(figsize=(12 , 10), nrows=2, ncols=2)
+    fig, ax = plt.subplots()
+    # axes = axes.flatten()
+    
+    galaxy_type = 'simple' #'two_phase'
+    field = 'ED'
+    case = 'B'
+    names = ['r', 'R', 'z', 'v']
+    
+    dim = [', kpc', ', kpc', ', kpc', ', km s$^{-1}$']
+    dim1 = [', kpc$^{-1}$', ', kpc$^{-1}$', ', kpc$^{-1}$', ', (km s$^{-1}$)$^{-1}$']
+    
+    N = 10_000_000
+    norm = 300_000_000 // N
+    
+    for i in range(4):
+        if i != 3:
+            continue
+        
+        name = names[i]
+        # ax = axes[i]
+        # if i == 3:
+        #     ax.set_xlim([0, 100])
+        # elif i == 2:
+        #     ax.set_xlim([0, 0.4])
+        # elif i == 1:
+        #     ax.set_xlim([0, 10])
+        # else:
+        #     ax.set_xlim([0, 1.5])
+        bins = [rbins, Rbins, zbins, vbins/1e5][i]
+        file_name = '{}_{}_{}_erosita{}_std'.format(galaxy_type, field, case, '')
+        data_std = pd.read_feather(path + res_name + file_name + '.feather')
+        
+        file_name = '{}_{}_{}_erosita{}_sum'.format(galaxy_type, field,
+                                        case, '')
+        data = pd.read_feather(path + res_name + file_name + '.feather')
+        
+        # x_arr = (bins[1:] + bins[:1]) / 2
+        
+        
+        ax.tick_params(axis='both', labelsize=16)
+        ax.set_yscale('log')
+        
+        for j in range(3):
+            cts_num = ['', '-1', '-2'][j]
+            std_0 = np.array(data_std[name+cts_num])
+            data_0 = np.array(data[name+cts_num])
+            
+            data_0 = data_0 * bins[-1] / len(bins) # new dim
+            std_0 = std_0 * bins[-1] / len(bins) # new dim
+            
+            color = ['k', 'C0', 'C1'][j]
+            
+            n_in_bin = len(data_0)//nrebin
+            data_0_temp = np.zeros(nrebin)
+            std_0_temp = np.zeros(nrebin)
+            
+            std_0_squared = std_0**2
+            for itemp in range(n_in_bin):
+                data_0_temp += data_0[itemp::n_in_bin]
+                std_0_temp += std_0_squared[itemp::n_in_bin]
+            
+            data_0 = data_0_temp / n_in_bin
+            x_arr = bins[::n_in_bin]
+            x_arr = (x_arr[1:] + x_arr[:-1]) / 2
+            
+            std_0 = std_0_temp**0.5
+            
+            
+            # reg = 1000 # from kpc to pc
+            # if i != 3:
+                
+                
+            # bin_width = bins[-1] / (len(bins) / n_in_bin)
+            # data_0 = data_0 / np.sum(data_0 * bin_width) * norm
+            # std_0 = std_0 / np.sum(std_0 * bin_width) * norm
+            
+            # data_0 = moving_average(data_0, window_size=2)
+            # std_0 = moving_average(std_0, window_size=2)
+            
+            ax.plot(x_arr, norm*data_0, color)
+        
+            ax.fill_between(x_arr, y1=norm*(data_0-std_0), y2=norm*(data_0), color=color, alpha=0.1)
+            ax.fill_between(x_arr, y2=norm*(data_0+std_0), y1=norm*(data_0), color=color, alpha=0.1)
+        
+        ax.set_xlabel("$"+name+"$"+dim[i], fontsize=20)
+        ax.set_ylabel('$N$' + dim1[i], fontsize=20)
+
+        # ax.set_ylim([1., 3e5])
+        
+    print(np.sum(np.array(data['r']))*norm)
+    print(np.sum(np.array(data['r-1']))*norm)
+    print(np.sum(np.array(data['r-2']))*norm)
+    
+    fig.tight_layout()
+    # break
+    # print(len(std_c1[std_c1!=0]))
+    plt.subplots_adjust(wspace=0.4, hspace=0.4, left=0.1, right=0.9, top=0.9, bottom=0.1)
+    plt.tight_layout()
+    
+
+    fig.savefig('counts_rebinned/counts_{}_{}_{}.pdf'.format(galaxy_type, field, case), format='pdf')
+
+
+
+    # for i in range(2):
+    #     galaxy_type = ['simple','two_phase'][i]
+    #     for j in range(2):
+    #         field = ['CF', 'ED'][j]
+    #         lss = ['-', '--', '-.']
+    #         cases = ['A', 'B', 'C', 'D']
+    #         ax = axes[i, j]
+    #         axes[i, 0].set_ylabel(r'$N(CR > CR_0)$', fontsize=20)
+    #         axes[1, j].set_xlabel(r'$CR_0$, cts s$^{-1}$', fontsize=20)
+    #         ax.vlines(x=1e-2, ymin=1e-2, ymax=1e7, color='black', alpha=0.5, ls='--', lw=0.5)
+    #         # ax.set_title('galaxy is {}, field {}'.format(galaxy_type, field))
+    #         ax.tick_params(axis='both', labelsize=16)
+    #         for k in range(3):
+    #             ls = lss[k]
+    #             case = cases[k]
+    #             file_name = '{}_{}_{}_erosita{}_std'.format(galaxy_type, field,
+    #                                             case, '')
+    #             data_std = pd.read_feather(path + res_name + file_name + '.feather')
+    #             data_c1_std = np.array(data_std['c1'])
+    #             std_c1 = data_c1_std #np.cumsum(data_c1_std[::-1])[::-1]
+    #             file_name = '{}_{}_{}_erosita{}_sum'.format(galaxy_type, field,
+    #                                             case, '')
+    #             data = pd.read_feather(path + res_name + file_name + '.feather')
+                
+    #             bins = cbins #arr[1:]
+                
+    #             data_c1 = np.array(data['r'])
+    #             # data_c1 = np.cumsum(data_c1[::-1])[::-1]
+                
+    #             n_in_bin = len(data_c1)//nrebin
+    #             data_c1_temp = np.zeros(nrebin)
+    #             std_c1_temp = np.zeros(nrebin)
+                
+    #             std_c1_squared = std_c1**2
+    #             for itemp in range(n_in_bin):
+    #                 data_c1_temp += data_c1[itemp::n_in_bin]
+    #                 std_c1_temp += std_c1_squared[itemp::n_in_bin]
+    #             data_c1 = data_c1_temp / n_in_bin
+    #             bins = bins[::n_in_bin]
+    #             bins = bins[1::]
+                
+    #             std_c1 = std_c1_temp**0.5
+                
+    #             alpha = 0.5
+    #             N = 10_000_000
+    #             norm = 300_000_000 // N
+    #             idx = nrebin // 5 - 1 # 400 for 2000
+    #             color = ['C3', 'C2', 'C0', 'C3'][k]
+    #             # ax.text(1.2e-2, 1e5, '{:.0f} NSs with CR > 1e-2'.format(norm*data_c1[idx]), color='C0', fontsize=14)
+                
+    #             # ax.plot(arr[1:], norm*data_c0, color=color, alpha=alpha)
+    #             ax.plot(bins, norm*data_c1, color=color, alpha=alpha, ls=ls, lw=1, markersize=3, marker='o', label=case)
+    #             # ax.plot([bins[idx]], [norm*data_c1[idx]], color=color, markersize=5, marker='o', label=case)
+                
+    #             ax.fill_between(bins, y1 = norm*(data_c1-std_c1), y2 = norm*(data_c1), color=color, alpha=0.1)
+    #             ax.fill_between(bins, y2 = norm*(data_c1+std_c1), y1 = norm*(data_c1), color=color, alpha=0.1)
+                    
+    #             ax.set_yscale('log')
+    #             ax.legend(title=r'Propeller model')
+    #             ax.set_xscale('log')
+    #             ax.set_xlim([1e-3, 1e1])
+    #             ax.set_ylim([1e-1, 1e5])
+    #             fig.tight_layout()
+    #             # break
+    #             # print(len(std_c1[std_c1!=0]))
+    #             plt.subplots_adjust(wspace=0.4, hspace=0.4, left=0.1, right=0.9, top=0.9, bottom=0.1)
+    #             plt.tight_layout()
+    
+    #             fig.savefig('counts_rebinned/counts_{}_{}_{}.pdf'.format(galaxy_type, field, case), format='pdf')
+
+
+# data_c1 = std_c1 = np.array([0,0,1,4])
+# nrebin = 1
+# n_in_bin = 4
+# data_c1_temp = np.zexros(nrebin)
+# std_c1_temp = np.zeros(nrebin)
+# for itemp in range(n_in_bin):
+#     data_c1_temp += data_c1[itemp::n_in_bin]
+#     std_c1_temp += (std_c1[itemp::n_in_bin])**2
+# print(data_c1_temp, std_c1_temp**0.5)
+
+# pdfs1()
+# merge_pdfs()
+# plotrrebin(100)
+
+# rebin(10)
+# rebin(100)
+# rebin(40)
+# plotrrebin(400)
+# plotrrebin(20)
+
+# a = np.array([0,1,2,4])
+# print(a[::2])
+# print(a[::2]+a[])
+
+
+def table_stages():
+    df_p = pd.read_csv('/home/afoninamd/Downloads/realistic2/all_pulsar.txt', sep='\s+', header=None)
+    df_m = pd.read_csv('/home/afoninamd/Downloads/realistic2/all_magnetar.txt', sep='\s+', header=None)
+    df_pr = pd.read_csv('/home/afoninamd/Downloads/realistic2/all_pulsar_roman.txt', sep='\s+', header=None)
+    df_mr = pd.read_csv('/home/afoninamd/Downloads/realistic2/all_magnetar_roman.txt', sep='\s+', header=None)
+    
+    norm = (np.array(df_p[1])+np.array(df_m[1]))[0]
+    norm_p = np.array(df_p[1])[0]
+    norm_m = np.array(df_m[1])[0]
+    
+    ejector = (np.array(df_p[2]) + np.array(df_m[2])) / norm
+    propeller = (np.array(df_p[3]) + np.array(df_m[3])) / norm
+    accretor = (np.array(df_p[4]) + np.array(df_m[4])) / norm
+    georotator = (np.array(df_p[5]) + np.array(df_m[5])) / norm
+    
+    
+    s_ejector = (np.array(df_p[6])**2*norm_p**2 + np.array(df_m[6])**2*norm_m**2)**0.5 / norm
+    s_propeller = (np.array(df_p[7])**2*norm_p**2 + np.array(df_m[7])**2*norm_m**2)**0.5 / norm
+    s_accretor = (np.array(df_p[8])**2*norm_p**2 + np.array(df_m[8])**2*norm_m**2)**0.5 / norm
+    s_georotator = (np.array(df_p[9])**2*norm_p**2 + np.array(df_m[9])**2*norm_m**2)**0.5 / norm
+    
+    for i in range(len(ejector)):
+        all_norm = 100
+        print('{} & ${:.2f} \pm {:.2f}$ & ${:.2f} \pm {:.2f}$ & ${:.2e} \pm {:.2e}$ & ${:.2e} \pm {:.2e}$ \\\\'.format(df_p[0][i], ejector[i]*all_norm, s_ejector[i]*all_norm, propeller[i]*all_norm, s_propeller[i]*all_norm, accretor[i]*all_norm, s_accretor[i]*all_norm, georotator[i]*all_norm, s_georotator[i]*all_norm))
+        
+table_stages()

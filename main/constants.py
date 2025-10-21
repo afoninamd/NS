@@ -20,6 +20,7 @@ from astropy.cosmology import default_cosmology
 
 # mw = gp.BovyMWPotential2014() # from Bovy 2015 (getpot is in the bottom)
 mw = gp.MilkyWayPotential()
+# help(gp.MilkyWayPotential) # type ?? after the function in the terminal to find out the details
 
 N = 10_000_000  # the number of tracks overall
 output_dir = 'result/realistic/'
