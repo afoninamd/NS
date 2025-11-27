@@ -44,10 +44,17 @@ def B_magnetar(N: int):
     # derive the mean and sigma from the real data
     B_std_m = np.std(B_tab)
     B_mean_m = np.mean(B_tab)
+    print(B_std_m, B_mean_m)
     # create an array of B_power using the derived mean and sigma
     B_power = np.random.normal(loc=B_mean_m, scale=B_std_m, size=N)
     return 10**B_power
-
+data = pd.read_csv("data/TabO1.csv")
+B_tab = np.log10(np.array(data['B']))
+B_tab = B_tab[B_tab>13]
+# derive the mean and sigma from the real data
+B_std_m = np.std(B_tab)
+B_mean_m = np.mean(B_tab)
+print(B_std_m, B_mean_m)
 
 def P_pulsar(N: int):
     P_mean = -1.04
@@ -354,9 +361,10 @@ def distribution_mpi(N=100, kind='magnetar', crank=crank):
         df['B_in'] = B_array_initial
     pd.DataFrame.to_csv(df, output_dir + 'distr/distribution_{}_{}_{}.csv'.format(kind, N, crank), sep=';')
 
+# distribution_mpi(N=10000, kind='pulsar')
 
-distribution_mpi(N=N*9//10, kind='pulsar')
-distribution_mpi(N=N//10, kind='magnetar')
+# distribution_mpi(N=N*9//10, kind='pulsar')
+# distribution_mpi(N=N//10, kind='magnetar')
 
 # def Vpec(x: np.array, y: np.array, N: np.array, rlim=rgal):
 #     r = (x**2 + y**2)**0.5

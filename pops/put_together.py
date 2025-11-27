@@ -15,7 +15,7 @@ import glob
 import pandas as pd
 import pyarrow.feather as feather
 
-def create_txt():
+def create_txt_old():
     for addstring in ['', '_roman']:
         for star_type in ['pulsar', 'magnetar']:
             for galaxy_type in ['simple', 'two_phase']:
@@ -89,6 +89,86 @@ def create_txt():
                         with open(output_dir + 'all.txt', 'a') as file:
                             file.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(row, len(i_array), np.float32(np.sum(wE)), np.float32(np.sum(wP)), np.float32(np.sum(wA)), np.float32(np.sum(wG)),
                                                                                                          np.float32(np.std(wE_sum)), np.float32(np.std(wP_sum)), np.float32(np.std(wA_sum)), np.float32(np.std(wG_sum))))
+
+
+def create_txt():
+    for addstring in ['', '_roman']:
+        for galaxy_type in ['simple', 'two_phase']:
+            for field in ['CF', 'ED']:
+                for case in ['A', 'B', 'C', 'D']:
+                    row = '{}_{}_{}_{}'.format(galaxy_type, field, case, addstring)
+                    
+                    
+                        # for rand_i in range(N_files):
+                        #     with open(output_dir + 'all_{}.txt'.format(rand_i), 'a') as file:
+                        #         file.write('{}\t{}\t{}\t{}\t{}\t{}\n'.format('', '', '', '', '', ''))
+    
+                    i_array = np.array([])
+                    wE = np.array([])
+                    wP = np.array([])
+                    wA = np.array([])
+                    wG = np.array([])
+                    N_files = 100
+                    pattern = '{}temp/*_{}_{}_{}_{}{}.txt'.format(output_dir, galaxy_type, field, case, 'pulsar', addstring)
+                    for file_name in glob.glob(pattern):
+                        # rand_i = np.random.uniform(N_files)
+                        # df0 = np.loadtxt(output_dir + 'all_{}.txt'.format(rand_i), delimiter='\t')
+                        # i_array = df0[:, 0]
+                        # wE = df0[:, 1]
+                        # wP = df0[:, 2]
+                        # wA = df0[:, 3]
+                        # wG = df0[:, 4]
+                        data = np.loadtxt(file_name, delimiter='\t')
+                        file_name_magnetar = file_name.replace("pulsar", "magnetar")
+                        data_magnetar = np.loadtxt(file_name_magnetar, delimiter='\t')
+                        # i_array = i_array.append(data[:, 0].astype(int))
+                        try:
+                            i_array = np.append(i_array, data[:, 0])
+                            wE = np.append(wE, (data[:, 1]+data_magnetar[:, 1]))
+                            wP = np.append(wP, (data[:, 2]+data_magnetar[:, 2]))
+                            wA = np.append(wA, (data[:, 3]+data_magnetar[:, 3]))
+                            wG = np.append(wG, (data[:, 4]+data_magnetar[:, 4]))
+                        except IndexError:
+                            pass
+                    
+                    N1 = len(i_array)
+                    vals_per_iteration = N1 // N_files
+                    remainder = N1 % N_files
+                    
+                    i_sum = np.array([])
+                    wE_sum = np.array([])
+                    wP_sum = np.array([])
+                    wA_sum = np.array([])
+                    wG_sum = np.array([])
+                    for rand_i in range(N_files):
+                        # with open(output_dir + 'all_{}.txt'.format(rand_i), 'a') as file:
+                            # print('writing')
+                            start_idx = rand_i * vals_per_iteration + min(rand_i, remainder)
+                            end_idx = start_idx + vals_per_iteration
+                            if rand_i < remainder:
+                                end_idx += 1
+                            
+                            i_sum = np.append(i_sum, len(i_array[start_idx:end_idx]))
+                            wE_sum = np.append(wE_sum, np.sum(wE[start_idx:end_idx]))
+                            wP_sum = np.append(wP_sum, np.sum(wP[start_idx:end_idx]))
+                            wA_sum = np.append(wA_sum, np.sum(wA[start_idx:end_idx]))
+                            wG_sum = np.append(wG_sum, np.sum(wG[start_idx:end_idx]))
+                    
+                    if len(i_sum) > 0:
+                        wE_sum = wE_sum / i_sum
+                        wP_sum = wP_sum / i_sum
+                        wA_sum = wA_sum / i_sum
+                        wG_sum = wG_sum / i_sum
+                    else:
+                        wE_sum = 0
+                        wP_sum = 0
+                        wA_sum = 0
+                        wG_sum = 0
+                    
+                with open(output_dir + 'all.txt', 'a') as file:
+                    file.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(row, len(i_array), np.float32(np.sum(wE)), np.float32(np.sum(wP)), np.float32(np.sum(wA)), np.float32(np.sum(wG)),
+                                                                                                 np.float32(np.std(wE_sum)), np.float32(np.std(wP_sum)), np.float32(np.std(wA_sum)), np.float32(np.std(wG_sum))))
+
 
 
 def create_feather():

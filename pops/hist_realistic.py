@@ -279,6 +279,7 @@ def rebin(nrebin=40): # new number of bins
                 
     for i in range(2):
         galaxy_type = ['simple','two_phase'][i]
+        lines = ['A', 'B', 'C', 'D'] # for the table
         for j in range(2):
             field = ['CF', 'ED'][j]
             lss = ['-', '--', '-.']
@@ -336,7 +337,15 @@ def rebin(nrebin=40): # new number of bins
                     ax.plot(bins[15:], norm*diagonal[15:], ls='--', color='grey')
                     
              
-                    
+                print(bins[7])
+                
+                def format_num(n):
+                    # numbers < 100 -> 1 significant digit
+                    # numbers >=100 -> 2 significant digits
+                    sig = 1 if n < 100 else 2
+                    return n#float(f"{n:.{sig}g}")
+
+                lines[k] = lines[k] + ' & ${:.0f} \pm {:.0f}$'.format(format_num(norm*data_c1[7]), format_num(norm*std_c1[7]))
                 
                 ax.plot(bins, norm*data_c1, color=color, alpha=alpha, ls=ls, lw=1, markersize=3, marker='o', label=case)
                 
@@ -352,6 +361,9 @@ def rebin(nrebin=40): # new number of bins
                 ax.set_xlim([1e-3, 1e1])
                 ax.set_ylim([1e-1, 1e5])
             ax.legend(title=r'Propeller model')
+        for line in lines:
+            print(line + ' \\\\')
+        
     fig.tight_layout()
         # break
         # print(len(std_c1[std_c1!=0]))
@@ -360,8 +372,10 @@ def rebin(nrebin=40): # new number of bins
 
     fig.savefig('counts_rebinned/counts.pdf', format='pdf')
 
+# print(np.pi**0.5)
+rebin(nrebin=40)
 
-def plotrrebin(nrebin=40): # new number of bins
+def plotrrebin(nrebin=100,field = 'ED',  case = 'B'): # new number of bins
     plt.rcParams['font.size'] = 16
     plt.rcParams['text.usetex'] = True
     os.makedirs('counts_rebinned/', exist_ok=True)
@@ -369,9 +383,9 @@ def plotrrebin(nrebin=40): # new number of bins
     fig, ax = plt.subplots()
     # axes = axes.flatten()
     
-    galaxy_type = 'simple' #'two_phase'
-    field = 'ED'
-    case = 'B'
+    galaxy_type = 'two_phase'
+    
+    
     names = ['r', 'R', 'z', 'v']
     
     dim = [', kpc', ', kpc', ', kpc', ', km s$^{-1}$']
@@ -446,6 +460,32 @@ def plotrrebin(nrebin=40): # new number of bins
             # std_0 = moving_average(std_0, window_size=2)
             
             ax.plot(x_arr, norm*data_0, color)
+            
+            
+            """ The 99% line from the start """
+            y = norm * data_0
+            x = x_arr
+            cum_int = sp.integrate.cumulative_trapezoid(y, x, initial=0)
+            total = cum_int[-1]
+            threshold_value = 0.99 * total
+            idx_99 = np.searchsorted(cum_int, threshold_value)
+            x_99 = x[idx_99]
+            ax.axvline(x_99, linestyle=':', label='99% integral', color=color)
+            
+            if cts_num == '-2':
+                print(case, field, x_99)
+            
+            """ 3_sigma-interval """
+            # num_of_sigma = 1
+            # x = x_arr
+            # pdf = y / np.trapz(y, x)
+            # mu = np.trapz(x * pdf, x)
+            # sigma = np.sqrt(np.trapz((x - mu)**2 * pdf, x))
+            # low_3s = mu - num_of_sigma * sigma
+            # high_3s = mu + num_of_sigma * sigma
+            # plt.axvline(low_3s,  color=color, linestyle='--', label='μ − {}σ'.format(num_of_sigma))
+            # plt.axvline(high_3s, color=color, linestyle='--', label='μ + {}σ'.format(num_of_sigma))
+            
         
             ax.fill_between(x_arr, y1=norm*(data_0-std_0), y2=norm*(data_0), color=color, alpha=0.1)
             ax.fill_between(x_arr, y2=norm*(data_0+std_0), y1=norm*(data_0), color=color, alpha=0.1)
@@ -455,9 +495,9 @@ def plotrrebin(nrebin=40): # new number of bins
 
         # ax.set_ylim([1., 3e5])
         
-    print(np.sum(np.array(data['r']))*norm)
-    print(np.sum(np.array(data['r-1']))*norm)
-    print(np.sum(np.array(data['r-2']))*norm)
+    # print(np.sum(np.array(data['r']))*norm)
+    # print(np.sum(np.array(data['r-1']))*norm)
+    # print(np.sum(np.array(data['r-2']))*norm)
     
     fig.tight_layout()
     # break
@@ -468,7 +508,10 @@ def plotrrebin(nrebin=40): # new number of bins
 
     fig.savefig('counts_rebinned/counts_{}_{}_{}.pdf'.format(galaxy_type, field, case), format='pdf')
 
-
+""" HERE!!!! """
+# for case in ['A', 'B', 'C']:
+#     for field in ['CF', 'ED']:
+#         plotrrebin(case=case, field=field)
 
     # for i in range(2):
     #     galaxy_type = ['simple','two_phase'][i]
@@ -558,7 +601,7 @@ def plotrrebin(nrebin=40): # new number of bins
 # rebin(10)
 # rebin(100)
 # rebin(40)
-# plotrrebin(400)
+# plotrrebin(40)
 # plotrrebin(20)
 
 # a = np.array([0,1,2,4])
@@ -567,10 +610,16 @@ def plotrrebin(nrebin=40): # new number of bins
 
 
 def table_stages():
-    df_p = pd.read_csv('/home/afoninamd/Downloads/realistic2/all_pulsar.txt', sep='\s+', header=None)
-    df_m = pd.read_csv('/home/afoninamd/Downloads/realistic2/all_magnetar.txt', sep='\s+', header=None)
-    df_pr = pd.read_csv('/home/afoninamd/Downloads/realistic2/all_pulsar_roman.txt', sep='\s+', header=None)
-    df_mr = pd.read_csv('/home/afoninamd/Downloads/realistic2/all_magnetar_roman.txt', sep='\s+', header=None)
+    df = pd.read_csv('/home/afoninamd/Downloads/realistic_fixed/all.txt', sep='\s+', header=None)
+    df_p = df[:16]
+    df_m = df[16:32]
+    df_pr = df[32:48]
+    df_mr = df[48:]
+    
+    # df_p = pd.read_csv('/home/afoninamd/Downloads/realistic_fixed/all_pulsar.txt', sep='\s+', header=None)
+    # df_m = pd.read_csv('/home/afoninamd/Downloads/realistic_fixed/all_magnetar.txt', sep='\s+', header=None)
+    # df_pr = pd.read_csv('/home/afoninamd/Downloads/realistic_fixed/all_pulsar_roman.txt', sep='\s+', header=None)
+    # df_mr = pd.read_csv('/home/afoninamd/Downloads/realistic_fixed/all_magnetar_roman.txt', sep='\s+', header=None)
     
     norm = (np.array(df_p[1])+np.array(df_m[1]))[0]
     norm_p = np.array(df_p[1])[0]
@@ -591,4 +640,16 @@ def table_stages():
         all_norm = 100
         print('{} & ${:.2f} \pm {:.2f}$ & ${:.2f} \pm {:.2f}$ & ${:.2e} \pm {:.2e}$ & ${:.2e} \pm {:.2e}$ \\\\'.format(df_p[0][i], ejector[i]*all_norm, s_ejector[i]*all_norm, propeller[i]*all_norm, s_propeller[i]*all_norm, accretor[i]*all_norm, s_accretor[i]*all_norm, georotator[i]*all_norm, s_georotator[i]*all_norm))
         
-table_stages()
+# table_stages()
+# print(4736752+526368)
+# print(4734626+525733)
+
+def test_distr():
+    df = pd.read_csv('/home/afoninamd/Downloads/realistic_fixed_distribs/distribution_magnetar_1000000.csv', sep=';')
+    Vxpec = np.array(df['Vxpec'])/1e5
+    Vypec = np.array(df['Vypec'])/1e5
+    Vzpec = np.array(df['Vzpec'])/1e5
+    plt.hist(Vxpec, alpha=0.5)
+    plt.hist(Vypec, alpha=0.5)
+    plt.hist(Vzpec, alpha=0.5)
+    plt.hist((Vxpec**2+Vypec**2+Vzpec**2)**0.5)

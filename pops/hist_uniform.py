@@ -24,6 +24,7 @@ mpl.rcParams["text.usetex"] = True
 
 csize = 480
 
+output_dir=''
 npy_dir = output_dir + 'npy/'
 if not os.path.exists(npy_dir):
     os.makedirs(npy_dir)
@@ -146,7 +147,7 @@ def plot_uniform(galaxy_type='simple', field='ED', case='A', res_name = 'result3
     # print(loaded_array!=0)
     loaded_array = loaded_array / 10e6 * arr_size**2
     
-    labels = ['$v_0$, km s$^{-1}$', r'log$_{10}B_0$, G', r'log$_{10}P_0$, s',  r'$R_0$, kpc', r'$z_0$, kpc']
+    labels = ['$v_{kick}$, km s$^{-1}$', r'log$_{10}B_0$, G', r'log$_{10}P_0$, s',  r'$R_0$, kpc', r'$z_0$, kpc']
     bins_list = [Vb, Bb, Pb, Rb, Zb]
     
     V_counts = np.sum(loaded_array, axis=(1,2,3,4))
@@ -251,8 +252,8 @@ def plot_uniform_article(N=9_000_000, case='A', galaxy_type='simple', field='CF'
     # print(loaded_array[loaded_array!=0])
     # print(loaded_array!=0)
     
-    labels = ['$v_0$, km s$^{-1}$', r'log$_{10}B_0$, G', r'log$_{10}P_0$, s', r'$R_0$, kpc', r'$z_0$, kpc']
-    bins_list = [Vb, Bb, Rb, Zb, Pb]
+    labels = ['$v_{kick}$, km s$^{-1}$', r'log$_{10}B_0$, G', r'log$_{10}P_0$, s',  r'$R_0$, kpc', r'$z_0$, kpc']
+    bins_list = [Vb, Bb, Pb, Rb, Zb]
     
     V_counts = np.sum(loaded_array, axis=(1,2,3,4))
     B_counts = np.sum(loaded_array, axis=(0,2,3,4))
@@ -268,6 +269,7 @@ def plot_uniform_article(N=9_000_000, case='A', galaxy_type='simple', field='CF'
     
     counts_list = [V_counts, B_counts, P_counts, R_counts, Z_counts]
     centers_list = [V_center, B_center, P_center, R_center, Z_center]
+
     # n_vars = data_points.shape[1]
     n_vars = 3
     
@@ -291,7 +293,7 @@ def plot_uniform_article(N=9_000_000, case='A', galaxy_type='simple', field='CF'
             else:
                 ax.axes.xaxis.set_ticklabels([])
             if i == j:
-                if i == 2: i = 4
+                # if i == 2: i = 4
                 ax.hist(centers_list[i], bins_list[i], weights=counts_list[i]/arr_size, color='grey', density=False, rasterized=True)#, orientation='horizontal') #histtype='stepfilled', 
                 # ax.axes.xaxis.set_ticklabels([])
                 # ax.axes.yaxis.set_ticklabels([])
@@ -300,8 +302,8 @@ def plot_uniform_article(N=9_000_000, case='A', galaxy_type='simple', field='CF'
                 # ax.stairs(counts_list[i], bins_list[i], color='grey', histtype='stepfilled')
                 # ax.bar(counts_list[i], centers_list[i], align='center', color='grey')
             elif i > j:
-                if i == 2: i = 4
-                if j == 2: j = 4
+                # if i == 2: i = 4
+                # if j == 2: j = 4
                 # ax.set_xlabel(labels[i])
                 x_edges = centers_list[j]
                 y_edges = centers_list[i]
@@ -327,8 +329,8 @@ def plot_uniform_article(N=9_000_000, case='A', galaxy_type='simple', field='CF'
                 mpl.rcParams["text.usetex"] = True
             else:
                 ax.axis('off')
-            if i == 4: i = 2
-            if j == 4: j = 2
+            # if i == 4: i = 2
+            # if j == 4: j = 2
     cbar_ax = fig.add_axes([0.92, 0.108, 0.02, 0.77])  # [left, bottom, width, height]
     fig.colorbar(cms, cax=cbar_ax, label='Fraction of the accretor stage')
     # cbar_ax.set_ylabel('Fraction of the accretor stage') #, va='bottom', ha='center')
@@ -386,7 +388,7 @@ def plot_uniform_article(N=9_000_000, case='A', galaxy_type='simple', field='CF'
 #         for case in ['A', 'B', 'C', 'D']:
 #             plot_uniform(galaxy_type, field, case)
 
-# plot_uniform_article(case='A')
+plot_uniform_article(case='A')
 # plot_uniform_article(case='C')
 plot_uniform(case='B', field='ED', galaxy_type='two_phase')
 
