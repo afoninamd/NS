@@ -123,11 +123,17 @@ def create_txt():
                         data_magnetar = np.loadtxt(file_name_magnetar, delimiter='\t')
                         # i_array = i_array.append(data[:, 0].astype(int))
                         try:
-                            i_array = np.append(i_array, data[:, 0])
-                            wE = np.append(wE, (data[:, 1]+data_magnetar[:, 1]))
-                            wP = np.append(wP, (data[:, 2]+data_magnetar[:, 2]))
-                            wA = np.append(wA, (data[:, 3]+data_magnetar[:, 3]))
-                            wG = np.append(wG, (data[:, 4]+data_magnetar[:, 4]))
+                            data_0_temp = np.append((data[:, 0], data_magnetar[:, 0]))
+                            data_1_temp = np.append((data[:, 1], data_magnetar[:, 1]))
+                            data_2_temp = np.append((data[:, 2], data_magnetar[:, 2]))
+                            data_3_temp = np.append((data[:, 3], data_magnetar[:, 3]))
+                            data_4_temp = np.append((data[:, 4], data_magnetar[:, 4]))
+                            
+                            i_array = np.append(i_array, data_0_temp)
+                            wE = np.append(wE, data_1_temp)
+                            wP = np.append(wP, data_2_temp)
+                            wA = np.append(wA, data_3_temp)
+                            wG = np.append(wG, data_4_temp)
                         except IndexError:
                             pass
                     
