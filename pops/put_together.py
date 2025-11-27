@@ -171,8 +171,8 @@ def create_txt():
                         wA_sum = 0
                         wG_sum = 0
                     
-                with open(output_dir + 'all.txt', 'a') as file:
-                    file.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(row, len(i_array), np.float32(np.sum(wE)), np.float32(np.sum(wP)), np.float32(np.sum(wA)), np.float32(np.sum(wG)),
+                    with open(output_dir + 'all.txt', 'a') as file:
+                        file.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(row, len(i_array), np.float32(np.sum(wE)), np.float32(np.sum(wP)), np.float32(np.sum(wA)), np.float32(np.sum(wG)),
                                                                                                  np.float32(np.std(wE_sum)), np.float32(np.std(wP_sum)), np.float32(np.std(wA_sum)), np.float32(np.std(wG_sum))))
 
 
