@@ -161,10 +161,10 @@ def create_txt():
                             wG_sum = np.append(wG_sum, np.sum(wG[start_idx:end_idx]))
                     
                     if len(i_sum) > 0:
-                        wE_sum = wE_sum / i_sum
-                        wP_sum = wP_sum / i_sum
-                        wA_sum = wA_sum / i_sum
-                        wG_sum = wG_sum / i_sum
+                        wE_sum = wE_sum / i_sum * 2
+                        wP_sum = wP_sum / i_sum * 2
+                        wA_sum = wA_sum / i_sum * 2
+                        wG_sum = wG_sum / i_sum * 2 # since magnetars and pulsars should be counted together, but they are counted separately, so * 2
                     else:
                         wE_sum = 0
                         wP_sum = 0
