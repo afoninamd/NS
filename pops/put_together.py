@@ -267,8 +267,11 @@ def create_feather():
                     for file_name in glob.glob(pattern):
                         df_pulsar = pd.read_feather(file_name)
                         file_name_magnetar = file_name.replace('pulsar', 'magnetar')
-                        df_magnetar = pd.read_feather(file_name_magnetar)
-                        df = df_pulsar + df_magnetar
+                        try:
+                            df_magnetar = pd.read_feather(file_name_magnetar)
+                            df = df_pulsar + df_magnetar
+                        except FileNotFoundError:
+                            df = df_pulsar
                         df_temp = df - df_mean
                         df_square = df_square + df_temp.pow(2)
                     
@@ -308,7 +311,7 @@ def create_feather():
 
 
 create_txt()
-# create_feather()
+create_feather()
 
 
 
