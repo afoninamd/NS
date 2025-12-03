@@ -136,7 +136,7 @@ def create_txt():
                                 wG = np.append(wG, data_4_temp)
                             except IndexError:
                                 pass
-                        except FileNotFoundError:
+                        except OSError:
                             pass
                         # i_array = i_array.append(data[:, 0].astype(int))
                         
@@ -232,7 +232,7 @@ def create_feather():
                         try:
                             df_magnetar = pd.read_feather(file_name_magnetar)
                             df = df_pulsar + df_magnetar
-                        except FileNotFoundError:
+                        except OSError:
                             df = df_pulsar
                         df_sum = df_sum + df
             
@@ -277,7 +277,7 @@ def create_feather():
                         try:
                             df_magnetar = pd.read_feather(file_name_magnetar)
                             df = df_pulsar + df_magnetar
-                        except FileNotFoundError:
+                        except OSError:
                             df = df_pulsar
                         df_temp = df - df_mean
                         df_square = df_square + df_temp.pow(2)
