@@ -372,8 +372,7 @@ def rebin(nrebin=40): # new number of bins
 
     fig.savefig('counts_rebinned/counts.pdf', format='pdf')
 
-# print(np.pi**0.5)
-rebin(nrebin=40)
+# rebin(nrebin=40)
 
 def plotrrebin(nrebin=100,field = 'ED',  case = 'B'): # new number of bins
     plt.rcParams['font.size'] = 16
@@ -467,7 +466,7 @@ def plotrrebin(nrebin=100,field = 'ED',  case = 'B'): # new number of bins
             x = x_arr
             cum_int = sp.integrate.cumulative_trapezoid(y, x, initial=0)
             total = cum_int[-1]
-            threshold_value = 0.99 * total
+            threshold_value = 0.5 * total
             idx_99 = np.searchsorted(cum_int, threshold_value)
             x_99 = x[idx_99]
             ax.axvline(x_99, linestyle=':', label='99% integral', color=color)
@@ -509,9 +508,9 @@ def plotrrebin(nrebin=100,field = 'ED',  case = 'B'): # new number of bins
     fig.savefig('counts_rebinned/counts_{}_{}_{}.pdf'.format(galaxy_type, field, case), format='pdf')
 
 """ HERE!!!! """
-# for case in ['A', 'B', 'C']:
-#     for field in ['CF', 'ED']:
-#         plotrrebin(case=case, field=field)
+for case in ['A', 'B', 'C']:
+    for field in ['CF', 'ED']:
+        plotrrebin(case=case, field=field)
 
     # for i in range(2):
     #     galaxy_type = ['simple','two_phase'][i]
@@ -609,13 +608,13 @@ def plotrrebin(nrebin=100,field = 'ED',  case = 'B'): # new number of bins
 # print(a[::2]+a[])
 
 
-def table_stages():
+def table_stages_old():
     df = pd.read_csv('/home/afoninamd/Downloads/realistic_fixed/all.txt', sep='\s+', header=None)
     df_p = df[:16]
     df_m = df[16:32]
     df_pr = df[32:48]
     df_mr = df[48:]
-    
+    # df_m = np.zeros((10,16))
     # df_p = pd.read_csv('/home/afoninamd/Downloads/realistic_fixed/all_pulsar.txt', sep='\s+', header=None)
     # df_m = pd.read_csv('/home/afoninamd/Downloads/realistic_fixed/all_magnetar.txt', sep='\s+', header=None)
     # df_pr = pd.read_csv('/home/afoninamd/Downloads/realistic_fixed/all_pulsar_roman.txt', sep='\s+', header=None)
@@ -640,9 +639,44 @@ def table_stages():
         all_norm = 100
         print('{} & ${:.2f} \pm {:.2f}$ & ${:.2f} \pm {:.2f}$ & ${:.2e} \pm {:.2e}$ & ${:.2e} \pm {:.2e}$ \\\\'.format(df_p[0][i], ejector[i]*all_norm, s_ejector[i]*all_norm, propeller[i]*all_norm, s_propeller[i]*all_norm, accretor[i]*all_norm, s_accretor[i]*all_norm, georotator[i]*all_norm, s_georotator[i]*all_norm))
         
-# table_stages()
+
+# table_stages_old()
 # print(4736752+526368)
 # print(4734626+525733)
+
+
+def table_stages():
+    df = pd.read_csv('/home/afoninamd/Documents/NS/project/pops/result/all.txt', sep='\s+', header=None)
+    df_p = df[:16]
+    df_m = np.zeros((10,16))
+    # df_pr = df[16:32]
+    # df_mr = np.zeros(16)
+    
+    # df_p = pd.read_csv('/home/afoninamd/Downloads/realistic_fixed/all_pulsar.txt', sep='\s+', header=None)
+    # df_m = pd.read_csv('/home/afoninamd/Downloads/realistic_fixed/all_magnetar.txt', sep='\s+', header=None)
+    # df_pr = pd.read_csv('/home/afoninamd/Downloads/realistic_fixed/all_pulsar_roman.txt', sep='\s+', header=None)
+    # df_mr = pd.read_csv('/home/afoninamd/Downloads/realistic_fixed/all_magnetar_roman.txt', sep='\s+', header=None)
+    
+    norm = (np.array(df_p[1])+np.array(df_m[1]))[0]
+    norm_p = np.array(df_p[1])[0]
+    norm_m = 0 #np.array(df_m[1])[0]
+    
+    ejector = (np.array(df_p[2]) + np.array(df_m[2])) / norm
+    propeller = (np.array(df_p[3]) + np.array(df_m[3])) / norm
+    accretor = (np.array(df_p[4]) + np.array(df_m[4])) / norm
+    georotator = (np.array(df_p[5]) + np.array(df_m[5])) / norm
+    
+    s_ejector = (np.array(df_p[6])**2*norm_p**2 + np.array(df_m[6])**2*norm_m**2)**0.5 / norm
+    s_propeller = (np.array(df_p[7])**2*norm_p**2 + np.array(df_m[7])**2*norm_m**2)**0.5 / norm
+    s_accretor = (np.array(df_p[8])**2*norm_p**2 + np.array(df_m[8])**2*norm_m**2)**0.5 / norm
+    s_georotator = (np.array(df_p[9])**2*norm_p**2 + np.array(df_m[9])**2*norm_m**2)**0.5 / norm
+    
+    for i in range(len(ejector)):
+        all_norm = 100
+        print('{} & ${:.2f} \pm {:.2f}$ & ${:.2f} \pm {:.2f}$ & ${:.2e} \pm {:.2e}$ & ${:.2e} \pm {:.2e}$ \\\\'.format(df_p[0][i], ejector[i]*all_norm, s_ejector[i]*all_norm, propeller[i]*all_norm, s_propeller[i]*all_norm, accretor[i]*all_norm, s_accretor[i]*all_norm, georotator[i]*all_norm, s_georotator[i]*all_norm))
+        
+# table_stages()
+
 
 def test_distr():
     df = pd.read_csv('/home/afoninamd/Downloads/realistic_fixed_distribs/distribution_magnetar_1000000.csv', sep=';')

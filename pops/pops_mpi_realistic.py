@@ -18,7 +18,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from pops.track import get_coordinates_velocities, evolution_galaxy_iterations
 from pops.observability import flux_to_counts_constants, one_observability
 from main.evolution import gett, star_formation_history
-from main.constants import galaxy_age, N, output_dir, R0, arr_size
+from main.constants import galaxy_age, N, output_dir, R0, arr_size, Gyr
 
 comm = MPI.COMM_WORLD
 crank = comm.Get_rank()
@@ -71,6 +71,8 @@ fbins = 10**np.linspace(-15, -5, arr_size+1)
 cbins = 10**np.linspace(-4, 6, arr_size+1)
 vbins = np.linspace(0, 500, arr_size+1) * 1e5
 Tbins = 10**np.linspace(5, 9, arr_size+1) # better from 5 to 8
+tbins = np.linspace(0, galaxy_age, arr_size+1)
+
 
 def calculations(star_type):
    
@@ -106,15 +108,15 @@ def calculations(star_type):
     x = data['x']
     y = data['y']
     z = data['z']
-    # Vxpec = data['Vxpec']
-    # Vypec = data['Vypec']
-    # Vzpec = data['Vzpec']
-    vx = Vx / 1e5
-    vy = Vy / 1e5
-    vz = Vz / 1e5
-    # vx = (Vx+Vxpec) / 1e5
-    # vy = (Vy+Vypec) / 1e5
-    # vz = (Vz+Vzpec) / 1e5
+    Vxpec = data['Vxpec']
+    Vypec = data['Vypec']
+    Vzpec = data['Vzpec']
+    # vx = Vx / 1e5
+    # vy = Vy / 1e5
+    # vz = Vz / 1e5
+    vx = (Vx+Vxpec) / 1e5
+    vy = (Vy+Vypec) / 1e5
+    vz = (Vz+Vzpec) / 1e5
     """ for the Roman telescope """
     def module(array):
         return (array[0]**2 + array[1]**2 + array[2]**2)**0.5
@@ -145,6 +147,9 @@ def calculations(star_type):
                                         'T': np.zeros(arr_size),
                                         'T-2': np.zeros(arr_size),
                                         'T-1': np.zeros(arr_size),
+                                        't': np.zeros(arr_size),
+                                        't-2': np.zeros(arr_size),
+                                        't-1': np.zeros(arr_size),
                                         'f0': np.zeros(arr_size),
                                         'f1': np.zeros(arr_size),
                                         'c0': np.zeros(arr_size),
@@ -268,6 +273,11 @@ def calculations(star_type):
                             T2counts, _ = np.histogram(Ttemp, bins=Tbins, weights=weight2)
                             T1counts, _ = np.histogram(Ttemp, bins=Tbins, weights=weight1)
                             
+                            ttemp = t1[1:]
+                            tcounts, _ = np.histogram(ttemp, bins=tbins, weights=weight)
+                            t2counts, _ = np.histogram(ttemp, bins=tbins, weights=weight2)
+                            t1counts, _ = np.histogram(ttemp, bins=tbins, weights=weight1)
+                            
                             f0counts, _ = np.histogram(f0[1:], bins=fbins, weights=weight)
                             f1counts, _ = np.histogram(f1[1:], bins=fbins, weights=weight)
                             c0counts, _ = np.histogram(c0[1:], bins=cbins, weights=weight)
@@ -278,6 +288,7 @@ def calculations(star_type):
                                                'z': zcounts, 'z-2': z2counts, 'z-1': z1counts,
                                                'v': vcounts, 'v-2': v2counts, 'v-1': v1counts,
                                                'T': Tcounts, 'T-2': T2counts, 'T-1': T1counts,
+                                               't': tcounts, 't-2': t2counts, 't-1': t1counts,
                                                'f0': f0counts, 'f1': f1counts,
                                                'c0': c0counts, 'c1': c1counts})
                             float_cols = df.select_dtypes(include=['float64']).columns
@@ -315,6 +326,10 @@ def calculations(star_type):
                             T2counts, _ = np.histogram(Ttemp, bins=Tbins, weights=weight2)
                             T1counts, _ = np.histogram(Ttemp, bins=Tbins, weights=weight1)
                             
+                            tcounts, _ = np.histogram(ttemp, bins=tbins, weights=weight)
+                            t2counts, _ = np.histogram(ttemp, bins=tbins, weights=weight2)
+                            t1counts, _ = np.histogram(ttemp, bins=tbins, weights=weight1)
+                            
                             f0counts, _ = np.histogram(f0[1:], bins=fbins, weights=weight)
                             f1counts, _ = np.histogram(f1[1:], bins=fbins, weights=weight)
                             c0counts, _ = np.histogram(c0[1:], bins=cbins, weights=weight)
@@ -325,6 +340,7 @@ def calculations(star_type):
                                                'z': zcounts, 'z-2': z2counts, 'z-1': z1counts,
                                                'v': vcounts, 'v-2': v2counts, 'v-1': v1counts,
                                                'T': Tcounts, 'T-2': T2counts, 'T-1': T1counts,
+                                               't': tcounts, 't-2': t2counts, 't-1': t1counts,
                                                'f0': f0counts, 'f1': f1counts,
                                                'c0': c0counts, 'c1': c1counts})
                             float_cols = df.select_dtypes(include=['float64']).columns
@@ -345,6 +361,7 @@ def calculations(star_type):
                             # df['phase'] = df['phase'].astype('int8')
                             
 
+""" HERE!!! """
 calculations('magnetar')
 calculations('pulsar')
 

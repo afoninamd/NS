@@ -144,7 +144,7 @@ def is_150_a_threshold(thres=150, N=1000):
     V2 = V[status==0]
     print(len(V1), len(V2))
     
-is_150_a_threshold()
+# is_150_a_threshold()
 
 
 
