@@ -120,22 +120,26 @@ def create_txt():
                         # wG = df0[:, 4]
                         data = np.loadtxt(file_name, delimiter='\t')
                         file_name_magnetar = file_name.replace("pulsar", "magnetar")
-                        data_magnetar = np.loadtxt(file_name_magnetar, delimiter='\t')
-                        # i_array = i_array.append(data[:, 0].astype(int))
                         try:
-                            data_0_temp = np.append(data[:, 0], data_magnetar[:, 0])
-                            data_1_temp = np.append(data[:, 1], data_magnetar[:, 1])
-                            data_2_temp = np.append(data[:, 2], data_magnetar[:, 2])
-                            data_3_temp = np.append(data[:, 3], data_magnetar[:, 3])
-                            data_4_temp = np.append(data[:, 4], data_magnetar[:, 4])
-                            
-                            i_array = np.append(i_array, data_0_temp)
-                            wE = np.append(wE, data_1_temp)
-                            wP = np.append(wP, data_2_temp)
-                            wA = np.append(wA, data_3_temp)
-                            wG = np.append(wG, data_4_temp)
-                        except IndexError:
+                            data_magnetar = np.loadtxt(file_name_magnetar, delimiter='\t')
+                            try:
+                                data_0_temp = np.append(data[:, 0], data_magnetar[:, 0])
+                                data_1_temp = np.append(data[:, 1], data_magnetar[:, 1])
+                                data_2_temp = np.append(data[:, 2], data_magnetar[:, 2])
+                                data_3_temp = np.append(data[:, 3], data_magnetar[:, 3])
+                                data_4_temp = np.append(data[:, 4], data_magnetar[:, 4])
+                                
+                                i_array = np.append(i_array, data_0_temp)
+                                wE = np.append(wE, data_1_temp)
+                                wP = np.append(wP, data_2_temp)
+                                wA = np.append(wA, data_3_temp)
+                                wG = np.append(wG, data_4_temp)
+                            except IndexError:
+                                pass
+                        except FileNotFoundError:
                             pass
+                        # i_array = i_array.append(data[:, 0].astype(int))
+                        
                     
                     N1 = len(i_array)
                     vals_per_iteration = N1 // N_files
@@ -225,8 +229,11 @@ def create_feather():
                         N_files += 1
                         df_pulsar = pd.read_feather(file_name)
                         file_name_magnetar = file_name.replace('pulsar', 'magnetar')
-                        df_magnetar = pd.read_feather(file_name_magnetar)
-                        df = df_pulsar + df_magnetar
+                        try:
+                            df_magnetar = pd.read_feather(file_name_magnetar)
+                            df = df_pulsar + df_magnetar
+                        except FileNotFoundError:
+                            df = df_pulsar
                         df_sum = df_sum + df
             
                     float_cols = df_sum.select_dtypes(include=['float64']).columns
