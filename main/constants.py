@@ -22,7 +22,7 @@ from astropy.cosmology import default_cosmology
 mw = gp.MilkyWayPotential()
 # help(gp.MilkyWayPotential) # type ?? after the function in the terminal to find out the details
 
-N = 10_000_000  # the number of tracks overall
+N = 10_000  # the number of tracks overall
 output_dir = 'result/realistic/'
 arr_size = 2000
 
