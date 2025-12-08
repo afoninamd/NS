@@ -274,7 +274,10 @@ def calculations(star_type):
                             T1counts, _ = np.histogram(Ttemp, bins=Tbins, weights=weight1)
                             
                             ttemp = t1[1:]
-                            tcounts, _ = np.histogram(ttemp, bins=tbins, weights=weight)
+                            accretor_weight = np.zeros(len(weight))
+                            accretor_weight[::] = weight[::]
+                            accretor_weight[stages1[1:]!=3] = 0
+                            tcounts, _ = np.histogram(ttemp, bins=tbins, weights=accretor_weight)
                             t2counts, _ = np.histogram(ttemp, bins=tbins, weights=weight2)
                             t1counts, _ = np.histogram(ttemp, bins=tbins, weights=weight1)
                             
@@ -326,7 +329,10 @@ def calculations(star_type):
                             T2counts, _ = np.histogram(Ttemp, bins=Tbins, weights=weight2)
                             T1counts, _ = np.histogram(Ttemp, bins=Tbins, weights=weight1)
                             
-                            tcounts, _ = np.histogram(ttemp, bins=tbins, weights=weight)
+                            accretor_weight = np.zeros(len(weight))
+                            accretor_weight[::] = weight[::]
+                            accretor_weight[stages1[1:]!=3] = 0
+                            tcounts, _ = np.histogram(ttemp, bins=tbins, weights=accretor_weight)
                             t2counts, _ = np.histogram(ttemp, bins=tbins, weights=weight2)
                             t1counts, _ = np.histogram(ttemp, bins=tbins, weights=weight1)
                             

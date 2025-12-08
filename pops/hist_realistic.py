@@ -19,8 +19,9 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from main.constants import arr_size
-
+from main.constants import arr_size, galaxy_age, Gyr, Myr, year
+full_path = '/home/afoninamd/Downloads/test_new_10k/'
+# full_path = '/home/afoninamd/Downloads/realistic2/'
 path = '/home/afoninamd/Downloads/'
 res_name = 'realistic2/'
 # path = '/home/afoninamd/Documents/project/pops/result/realistic/'
@@ -32,6 +33,7 @@ fbins = 10**np.linspace(-15, -5, arr_size+1)
 cbins = 10**np.linspace(-4, 6, arr_size+1)
 vbins = np.linspace(0, 500, arr_size+1) * 1e5
 Tbins = 10**np.linspace(5, 9, arr_size+1) # better from 5 to 8
+tbins = np.linspace(0, galaxy_age, arr_size+1)
 
 # for galaxy_type in ['simple']:#, 'two_phase']:
 #     for field in ['CF']:#, 'ED']:
@@ -229,32 +231,40 @@ def plotr():
                     
                     file_name = '{}_{}_{}_erosita{}_sum'.format(galaxy_type, field,
                                                     case, add_string)
-                    data = pd.read_feather(path + res_name + file_name + '.feather')
+                    # data = pd.read_feather(path + res_name + file_name + '.feather')
                     
-                    arr = Rbins
-                    data_2 = np.array(data['r-2'])
-                    data_1 = np.array(data['r-1'])
-                    data_0 = np.array(data['r'])
+                    data = pd.read_feather(full_path +'/' + file_name + '.feather')
+                    # print(data.columns)
+                    arr = tbins / Gyr #Rbins
+                    # data_2 = np.array(data['r-2'])
+                    # data_1 = np.array(data['r-1'])
+                    # data_0 = np.array(data['r'])
+                    data_2 = np.array(data['t-2'])
+                    data_1 = np.array(data['t-1'])
+                    data_0 = np.array(data['t'])
                     
                     alpha = 1
                     N = 300
                     norm = 300_000_000 // N
                     idx = 2 # 399 for 2000
                     
-                    arr = rbins
+                    # arr = rbins
                     ax.plot(arr[1:], norm*data_0, 'k')
                     ax.plot(arr[1:], norm*data_1, 'C0')
                     ax.plot(arr[1:], norm*data_2, 'C1')
                     ax.set_yscale('log')
                     ax.set_xlim()
                     
-                    
                     file_name = '{}_{}_{}_erosita{}_std'.format(galaxy_type, field,
                                                     case, add_string)
                     data = pd.read_feather(path + res_name + file_name + '.feather')
-                    std_2 = np.array(data['r-2'])
-                    std_1 = np.array(data['r-1'])
-                    std_0 = np.array(data['r'])
+                    # std_2 = np.array(data['r-2'])
+                    # std_1 = np.array(data['r-1'])
+                    # std_0 = np.array(data['r'])
+                    print(data.columns)
+                    std_2 = np.array(data['t-2'])
+                    std_1 = np.array(data['t-1'])
+                    std_0 = np.array(data['t'])
                     
                     ax.fill_between(arr[1:], y1= norm*(data_0-std_0), y2 = norm*(data_0), color='k', alpha=0.1)
                     ax.fill_between(arr[1:], y1= norm*(data_1-std_1), y2 = norm*(data_1), color='C0', alpha=0.1)
@@ -374,31 +384,29 @@ def rebin(nrebin=40): # new number of bins
 
 # rebin(nrebin=40)
 
-def plotrrebin(nrebin=100,field = 'ED',  case = 'B'): # new number of bins
+def plotrrebin(nrebin=100,field = 'ED',  case = 'B', galaxy_type = 'two_phase'): # new number of bins
     plt.rcParams['font.size'] = 16
     plt.rcParams['text.usetex'] = True
     os.makedirs('counts_rebinned/', exist_ok=True)
-    # fig, axes = plt.subplots(figsize=(12 , 10), nrows=2, ncols=2)
-    fig, ax = plt.subplots()
-    # axes = axes.flatten()
+    fig, axes = plt.subplots(figsize=(12 , 15), nrows=3, ncols=2)
+    # fig, ax = plt.subplots()
+    axes = axes.flatten()
+    names = ['r', 'R', 'z', 'v', 't', 'T']
     
-    galaxy_type = 'two_phase'
-    
-    
-    names = ['r', 'R', 'z', 'v']
-    
-    dim = [', kpc', ', kpc', ', kpc', ', km s$^{-1}$']
-    dim1 = [', kpc$^{-1}$', ', kpc$^{-1}$', ', kpc$^{-1}$', ', (km s$^{-1}$)$^{-1}$']
+    dim = [', kpc', ', kpc', ', kpc', ', km s$^{-1}$', ', Gyr', ', K']
+    dim1 = [', kpc$^{-1}$', ', kpc$^{-1}$', ', kpc$^{-1}$', ', (km s$^{-1}$)$^{-1}$', ', Gyr$^{-1}$', ', K$^{-1}$']
     
     N = 10_000_000
     norm = 300_000_000 // N
     
-    for i in range(4):
-        if i != 3:
-            continue
-        
+    for i in range(6):
+        # if i != 3:
+        #     continue
+        ax = axes[i]
         name = names[i]
-        # ax = axes[i]
+        if name == 'T':
+            ax.set_xscale('log')
+        
         # if i == 3:
         #     ax.set_xlim([0, 100])
         # elif i == 2:
@@ -407,13 +415,13 @@ def plotrrebin(nrebin=100,field = 'ED',  case = 'B'): # new number of bins
         #     ax.set_xlim([0, 10])
         # else:
         #     ax.set_xlim([0, 1.5])
-        bins = [rbins, Rbins, zbins, vbins/1e5][i]
+        bins = [rbins, Rbins, zbins, vbins/1e5, tbins/Gyr, Tbins][i]
         file_name = '{}_{}_{}_erosita{}_std'.format(galaxy_type, field, case, '')
-        data_std = pd.read_feather(path + res_name + file_name + '.feather')
+        data_std = pd.read_feather(full_path + file_name + '.feather') #path + res_name
         
         file_name = '{}_{}_{}_erosita{}_sum'.format(galaxy_type, field,
                                         case, '')
-        data = pd.read_feather(path + res_name + file_name + '.feather')
+        data = pd.read_feather(full_path + file_name + '.feather')
         
         # x_arr = (bins[1:] + bins[:1]) / 2
         
@@ -423,7 +431,10 @@ def plotrrebin(nrebin=100,field = 'ED',  case = 'B'): # new number of bins
         
         for j in range(3):
             cts_num = ['', '-1', '-2'][j]
-            std_0 = np.array(data_std[name+cts_num])
+            try:
+                std_0 = np.array(data_std[name+cts_num])
+            except:
+                continue
             data_0 = np.array(data[name+cts_num])
             
             data_0 = data_0 * bins[-1] / len(bins) # new dim
@@ -462,17 +473,39 @@ def plotrrebin(nrebin=100,field = 'ED',  case = 'B'): # new number of bins
             
             
             """ The 99% line from the start """
-            y = norm * data_0
-            x = x_arr
-            cum_int = sp.integrate.cumulative_trapezoid(y, x, initial=0)
-            total = cum_int[-1]
-            threshold_value = 0.5 * total
-            idx_99 = np.searchsorted(cum_int, threshold_value)
-            x_99 = x[idx_99]
-            ax.axvline(x_99, linestyle=':', label='99% integral', color=color)
+            if False: # name == 'z' and cts_num == '-2':
+                for value_a in [0.5, 0.99]:
+                    y = norm * data_0
+                    x = x_arr
+                    cum_int = sp.integrate.cumulative_trapezoid(y, x, initial=0)
+                    total = cum_int[-1]
+                    threshold_value = value_a * total
+                    idx_99 = np.searchsorted(cum_int, threshold_value)
+                    x_99 = x[idx_99]
+                    ax.axvline(x_99, linestyle=':', label='99% integral', color=color)
+                    print('{}_{}_{} z for {}: {:.3f}'.format(galaxy_type, field, case, value_a, x_99))
             
-            if cts_num == '-2':
-                print(case, field, x_99)
+            if name == 't' and cts_num == '':
+                y = norm * data_0
+                x = x_arr
+                cum_int = sp.integrate.cumulative_trapezoid(y, x, initial=0)
+                total = cum_int[-1]
+                threshold_value = 12.8
+                y1 = y[x>threshold_value]
+                x1 = x[x>threshold_value]
+                cum_int_last_Gyr = sp.integrate.cumulative_trapezoid(y1, x1, initial=0) 
+                print('{}_{}_{}: {:.0f} %'.format(galaxy_type, field, case, 100*cum_int_last_Gyr[-1]/total))
+                
+            if False: #name == 'T' and cts_num == '-2':
+                imax = np.argmax(y)
+                x_centers = 0.5 * (x_arr[:-1] + x_arr[1:])
+                x_at_max = x_centers[imax]
+                
+                print('{}_{}_{} T of maximum: {:.3e}'.format(galaxy_type, field, case, x_at_max))
+                      
+            
+            # if cts_num == '-2':
+            #     print(case, field, x_99)
             
             """ 3_sigma-interval """
             # num_of_sigma = 1
@@ -489,8 +522,8 @@ def plotrrebin(nrebin=100,field = 'ED',  case = 'B'): # new number of bins
             ax.fill_between(x_arr, y1=norm*(data_0-std_0), y2=norm*(data_0), color=color, alpha=0.1)
             ax.fill_between(x_arr, y2=norm*(data_0+std_0), y1=norm*(data_0), color=color, alpha=0.1)
         
-        ax.set_xlabel("$"+name+"$"+dim[i], fontsize=20)
-        ax.set_ylabel('$N$' + dim1[i], fontsize=20)
+        ax.set_xlabel("$"+name+"$"+dim[i], fontsize=14)
+        ax.set_ylabel('$N$' + dim1[i], fontsize=14)
 
         # ax.set_ylim([1., 3e5])
         
@@ -504,13 +537,18 @@ def plotrrebin(nrebin=100,field = 'ED',  case = 'B'): # new number of bins
     plt.subplots_adjust(wspace=0.4, hspace=0.4, left=0.1, right=0.9, top=0.9, bottom=0.1)
     plt.tight_layout()
     
-
-    fig.savefig('counts_rebinned/counts_{}_{}_{}.pdf'.format(galaxy_type, field, case), format='pdf')
+    fig.suptitle('{}_{}_{}'.format(galaxy_type, field, case))
+    fig.savefig('counts_rebinned/{}_{}_{}.pdf'.format(galaxy_type, field, case), format='pdf')
 
 """ HERE!!!! """
-for case in ['A', 'B', 'C']:
-    for field in ['CF', 'ED']:
-        plotrrebin(case=case, field=field)
+# plotr()
+plt.close()
+for galaxy_type in ['simple', 'two_phase']:
+    for case in ['A', 'B', 'C']:
+        for field in ['CF', 'ED']:
+            pass
+            plotrrebin(case=case, field=field, galaxy_type=galaxy_type)
+            # break
 
     # for i in range(2):
     #     galaxy_type = ['simple','two_phase'][i]
