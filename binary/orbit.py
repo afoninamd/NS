@@ -18,6 +18,7 @@ import matplotlib.pyplot as plt
 from matplotlib import gridspec
 
 def gett_binary(num=10000):
+    """ For the evolution with a sun-like companion """
     t0 = 1e6*year
     t1 = 10**np.linspace(np.log10(t0), np.log10(0.1*Gyr), endpoint=False, num=num)
     t2 = 10**np.linspace(np.log10(0.1*Gyr), np.log10(1.0*Gyr), endpoint=False, num=num)

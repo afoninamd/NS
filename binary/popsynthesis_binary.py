@@ -9,7 +9,7 @@ Created on Tue Mar  3 16:53:24 2026
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from main.constants import year, AU, Myr, day, M_sun
+from main.constants import year, AU, Myr, day, M_sun, R_sun
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -57,7 +57,7 @@ def orbit_evo(m2, porb, ecc, omega_spin_2=2*np.pi/(4*day/year)):
                                                dtp=0.0)
     
     Pspin= 2*np.pi / np.array(bcm['omega_spin_2']) * year
-    return np.array(bcm['tphys']) * Myr, Pspin, np.array(bcm['porb']) * day, np.array(bcm['ecc'])
+    return np.array(bcm['tphys']) * Myr, Pspin, np.array(bcm['porb']) * day, np.array(bcm['ecc']), np.array(bcm['rad_2']) * R_sun 
 
 
 def test_orbit_evo():
@@ -91,8 +91,6 @@ def test_orbit_evo():
     ax.set_xlabel("Time [Myr]")
     
 # test_orbit_evo()
-
-def M_dot
 
 
 def popsynthesis_1d(num=100):
@@ -215,4 +213,4 @@ def popsynthesis_2d(num=4):
     plt.colorbar(im3, ax=ax3)
     
 
-popsynthesis_2d(num=10)
+# popsynthesis_2d(num=10)

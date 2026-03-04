@@ -10,7 +10,6 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from astropy import constants as const
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import numpy as np
@@ -24,6 +23,8 @@ from time import time
 from matplotlib.colors import LogNorm
 import matplotlib.gridspec as gridspec
 
+
+""" Wind profiles v(r) """
 
 def wind_velocity(r):
     """
@@ -40,17 +41,13 @@ def wind_velocity(r):
     return v_a * (1 - np.exp(-(r-r1)/r_a))**beta
 
 
-def sound_speed(T):
-    # Mean molecular weight (fully ionized plasma)
-    mu = 0.6
-    return np.sqrt(k_B*T/(mu*m_p))
+def wind_velocity_beta_law(r):
+    """ Beta-law for the wind speed, better for giants """
+    beta = 3
+    v_inf = 400e5
+    v = v_inf * (1 - R_sun/r)**beta
+    return v
 
-def sonic_radius(M, cs):
-    return G*M/(2*cs**2)
-
-def parker_equation(v, r, cs, rs):
-    return (v/cs)**2 - np.log((v/cs)**2) - \
-           (4*np.log(r/rs) + 4*rs/r - 3)
 
 def parker_velocity_profile(M, R, Tcor, r_grid):
     """
@@ -65,6 +62,16 @@ def parker_velocity_profile(M, R, Tcor, r_grid):
     Returns:
         v(r) in m/s
     """
+    def sound_speed(T):
+        # Mean molecular weight (fully ionized plasma)
+        mu = 0.6
+        return np.sqrt(k_B*T/(mu*m_p))
+    
+    def sonic_radius(M, cs):
+        return G*M/(2*cs**2)
+    
+    def parker_equation(v, r, cs, rs):
+        return (v/cs)**2 - np.log((v/cs)**2) - (4*np.log(r/rs) + 4*rs/r - 3)
 
     cs = sound_speed(Tcor)
     rs = sonic_radius(M, cs)
@@ -90,15 +97,13 @@ def parker_velocity_profile(M, R, Tcor, r_grid):
 
     return v, cs, rs
 
-# -------------------------------
-# Example: Solar Parker Wind
-# -------------------------------
-
-
-def orbital_velocity(r):
-    return (G*2.4*M_sun/r)**0.5
 
 def plot_wind_velocity_profiles():
+    """ An illustration of v_wind(r) for the Sun """
+    
+    def orbital_velocity(r):
+        return (G*2.4*M_sun/r)**0.5
+    
     M_star = M_sun
     R_star = R_sun
     T_cor  = 1.5e6  # solar coronal temperature
@@ -127,17 +132,19 @@ def plot_wind_velocity_profiles():
 
 # plot_wind_velocity_profiles()
 
-def R_G(v_inf, M_star=M_sun):
-    return (G * (M_NS+M_star)) / v_inf**2
-
-def local_density(r, v_w, M_dot_0=1):
-    return M_dot_0 / (4 * np.pi * r**2 * v_w)
-
-def M_dot(r, v_w, M_star=M_sun, M_dot_0=1e12):
-    v_inf = ((G * (M_NS+M_star) / r) + v_w**2)**0.5
-    return np.pi * R_G(v_inf)**2 * local_density(r, v_w, M_dot_0) * v_inf
-
 def plot_M_dot_profile():
+    """ An illustration of M_dot for an NS at the circular orbit around the Sun """
+    
+    def R_G(v_inf, M_star=M_sun):
+        return (G * (M_NS+M_star)) / v_inf**2
+
+    def local_density(r, v_w, M_dot_0=1):
+        return M_dot_0 / (4 * np.pi * r**2 * v_w)
+
+    def M_dot(r, v_w, M_star=M_sun, M_dot_0=1e12):
+        v_inf = ((G * (M_NS+M_star) / r) + v_w**2)**0.5
+        return np.pi * R_G(v_inf)**2 * local_density(r, v_w, M_dot_0) * v_inf
+    
     M_star = M_sun
     R_star = R_sun
     M_dot_0 = 10**12
@@ -160,10 +167,11 @@ def plot_M_dot_profile():
     plt.show()
 
 
-# plot_M_dot_profile()
-
-def wp(t):
-    """ The solar wind parameters for a given t """
+def wind_parameters(t, pspin):
+    """
+    The solar wind parameters for a given t 
+    pspin: the spin period of the stars cgs
+    """
     
     def Mdot_t(t):
         """ The sun's mass loss rate """
@@ -190,5 +198,8 @@ def wp(t):
 
         T0 = T_t(t)
         T0[t<1.0*Gyr] = T_t(1.0*Gyr)
+    
+    
+    
     
     return T0, Mdot
