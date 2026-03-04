@@ -20,9 +20,17 @@ from main.constants import year, galaxy_age, pc, rgal, mw
 from pops.velocity import v_circ_1d, v_circ_2d
 from scipy.signal import find_peaks, correlate
 
+from joblib import Parallel, delayed
+import warnings
+import multiprocessing
+warnings.filterwarnings("ignore")
+n_cores = multiprocessing.cpu_count()-1
+from tqdm import tqdm
+import pandas as pd
+
 
 def orbit(pos=[10,0,0.], vel=[0,175,0], t_end=galaxy_age, plot=False,
-          number_of_dots=10_000):
+          number_of_dots=10_000, test=False):
     n_steps_max = number_of_dots
     """
     Returns coordinates and velocities in absolute frame of reference
@@ -51,11 +59,18 @@ def orbit(pos=[10,0,0.], vel=[0,175,0], t_end=galaxy_age, plot=False,
     orbit = gp.Hamiltonian(pot).integrate_orbit(ics, dt=dt, n_steps=n_steps)
                                                 # 0.5*u.Myr,
                                                 # n_steps=1+int(2*t_end/year/1e6))
-
+        # print(dt, np.max(np.abs((E - E[0])/E[0])))
+    
+    """ TEST """
+    if test:
+        E = orbit.energy(hamiltonian=None)
+        return (vel[0]**2 + vel[1]**2 + vel[2]**2)**0.5, np.max(np.abs((E - E[0])/E[0]))
+    
     t = np.array(orbit.t) # Myr
     xyz = np.array(orbit.pos.xyz) # [x, y, z] kpc
     v_xyz = np.array(orbit.vel.d_xyz) # [v_x, v_y, v_z] kpc / Myr
     v_xyz = v_xyz * 1000 * pc / (1e6 * year) * 1e-5 # [km/s]
+    
     
     if plot:
         """ Custom plot """
@@ -158,15 +173,85 @@ def test_orbit():
     1_000_000 - 0.3-0.4 s
     1_000_000 - 0.6 s wih correlation
     """
-    N = [100, 1000, 10_000, 100_000, 1_000_000]
+    N = [1000]#, 1000, 10_000, 100_000, 1_000_000]
     time_array = np.zeros(len(N))
     for i in range(len(N)):
         n = N[i]
         time0 = time()
-        t, xyz, v_xyz = orbit(pos=[10,0,0.], vel=[0,175,0], t_end=galaxy_age,
-                              plot=False, number_of_dots=n)
+        t, xyz, v_xyz = orbit(pos=[8,0,0.], vel=[0,220,0], t_end=galaxy_age,
+                              plot=True, number_of_dots=n)
         (find_orbital_period(t, xyz, v_xyz))
         time_array[i] = time() - time0
-    plt.plot(N, time_array)
+    # plt.plot(N, time_array)
+    
+    v_max = 10 # kms
+    t_end = galaxy_age
+    n_steps_max = 10_000
+    dt = 4 * pc / (v_max * 1e5) # [s]
+    dt = max(dt, t_end/n_steps_max) # min step is 10 kyr 10e3*year
+    n_steps = int(1.1 + t_end / dt)
+    
+    print(n_steps)
     
 # test_orbit()
+
+
+def test_energy_error(N=10, r0=8):
+    n_cores = 7
+    
+    data = pd.read_csv('/home/afoninamd/Documents/NS/project/pops/result/realistic/distr/distribution_pulsar_10000_0.csv', sep=';')
+    Vx = data['Vx']
+    Vy = data['Vy']
+    Vz = data['Vz']
+    Vxpec = data['Vxpec']
+    Vypec = data['Vypec']
+    Vzpec = data['Vzpec']
+    vx = (Vx+Vxpec) / 1e5
+    vy = (Vy+Vypec) / 1e5
+    vz = (Vz+Vzpec) / 1e5
+    
+    def one_trajectory(i):
+        v, err = orbit(pos=[r0,0,0.], vel=[vx[i], vy[i], vz[i]], t_end=galaxy_age, plot=True,
+                       number_of_dots=10000, test=True)
+        return (vx[i]**2+vy[i]**2+vz[i]**2)**0.5, err
+    res = Parallel(n_jobs=n_cores)(delayed(one_trajectory)(i)
+                                    for i in tqdm(range(N)))
+    res = np.array(res)
+    v = res[:,0]
+    err = res[:,1]
+    
+    df = pd.DataFrame({'v': v, 'E_err': err})
+    df.to_csv(f'err_{N}_{r0}kpc.csv', sep=';')
+
+
+def test():
+    r0 = 8
+    N = 10_000
+    # test_energy_error(N=N, r0=r0)
+    
+    df = pd.read_csv(f'err_{N}_{r0}kpc.csv', sep=';')
+    v = np.array(df['v'])
+    err = np.array(df['E_err'])
+    
+    """ Plotting """
+    v_bins = np.linspace(v.min(), v.max(), 50)
+    bin_centers = 0.5 * (v_bins[1:] + v_bins[:-1])
+    
+    err_binned = []
+    for i in range(len(v_bins) - 1):
+        mask = (v >= v_bins[i]) & (v < v_bins[i+1])
+        err_binned.append(np.mean(np.abs(err[mask])))
+    
+    plt.figure()
+    plt.plot(bin_centers, err_binned, marker='o')
+    plt.xlabel("v, km s$^{-1}$")
+    plt.ylabel("mean |dE/E|".format(r0))
+    plt.title("relative energy error for r0 = {} kpc".format(r0))
+    plt.show()
+    
+    # plt.figure()
+    # plt.hist2d(v, err, bins=50)
+    # plt.xlabel("v")
+    # plt.ylabel("relative energy error")
+    # plt.colorbar(label="counts")
+    # plt.show()

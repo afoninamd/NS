@@ -78,7 +78,6 @@ c_s_cold = 10e5
 # kpc = 1e3*pc
 # print(c_s_hot/1e5, c_s_cold/1e5)
 
-
 # def D():
     # """ Turbulent accretor """
 #     rho = m_p * 1

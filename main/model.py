@@ -28,12 +28,14 @@ class Object():
         """
         B, v, n -- float or scipy.inerpolate
         choose Omega if its a binary
+        Omega is also scipy,interpolate or None
         """
         self.B0 = B
         self.v0 = v # cm/s
         # self.n0 = n
         self.Mdot0 = Mdot
         self.case = case
+        self.Omega0 = Omega
         self.R_NS = R_NS
         self.I = I
         self.GM = G * M_NS
@@ -61,7 +63,10 @@ class Object():
     def M_dot(self, t):
         """ The amount of captured matter [g/s] """
         return self.Mdot0
-
+    
+    def Omega(self, t):
+        return self.Omega0
+    
     # def n(self, t):
     #     if np.isscalar(self.n0):
     #         if not np.isscalar(t) and len(t.shape):
@@ -356,7 +361,7 @@ class Object():
         """
         K_sd = self.mu(t)**2 / self.R_c(P)**3 * self.k_t
         if self.SyXRB:
-            K_su = self.M_dot(t) * self.eta * self.Omega * self.R_G(t)**2
+            K_su = self.M_dot(t) * self.eta * self.Omega(t) * self.R_G(t)**2
             R_m = max(R_m, self.R_NS)
             K_su = min(K_su, self.M_dot(t) * (self.GM * R_m)**0.5)
         """
@@ -369,7 +374,7 @@ class Object():
             R_m  = self.R_A(t)
         
         # K_su = self.M_dot(t) * (self.GM * self.R_A(t))**0.5
-        K_su = self.M_dot(t) * self.eta * self.Omega * self.R_G(t)**2
+        K_su = self.M_dot(t) * self.eta * self.Omega(t) * self.R_G(t)**2
         if K_su > self.M_dot(t) * (self.GM * R_m)**0.5:
             print('disc')
             print(np.log10(self.B(t)))
@@ -394,6 +399,10 @@ class Object():
     def j(self, t):
         j_t = self.v_t * self.R_G(t)**(4/3) / self.R_t**(1/3)
         j_K = (self.GM * self.R_A(t))**0.5
+        # if j_K < j_t:
+        #     return 1 # print('disk')
+        # else:
+        #     return 0
         j = min(j_K, j_t)
         return j #j_K, j_t
 
@@ -418,8 +427,8 @@ class Object():
         R_m = self.R_m_cur(t, P)
         R_m = min(R_m, self.R_l(P))
         """ If disk """
-        if self.Omega:
-            if (self.GM*R_m)**0.5 <= self.eta*self.Omega*self.R_G(t)**2:
+        if self.Omega is not None:
+            if (self.GM*R_m)**0.5 <= self.eta*self.Omega(t)*self.R_G(t)**2:
                 R_m = self.R_A(t)
         # if R_m > self.R_G(t):
         #     pass
@@ -462,8 +471,8 @@ class Object():
         else:
             R_m  = self.R_A(t)
         # print(self.R_m_settle(t)/self.R_A(t))
-        if self.Omega:
-            K_su = self.M_dot(t) * self.eta * self.Omega * self.R_G(t)**2
+        if self.Omega is not None:
+            K_su = self.M_dot(t) * self.eta * self.Omega(t) * self.R_G(t)**2
             R_m = max(R_m, self.R_NS)
             K_su = min(K_su, self.M_dot(t) * (self.GM * R_m)**0.5)
         else:
@@ -486,8 +495,8 @@ class Object():
         # if abs(dP_dt) > 1e-5:
         #     print(dP_dt)
         #     print(self.K_su(t))
-        #     # print(self.M_dot(t) * self.eta * self.Omega * self.R_G(t)**2)
-        #     print(self.Omega)
+        #     # print(self.M_dot(t) * self.eta * self.Omega(t) * self.R_G(t)**2)
+        #     print(self.Omega(t))
         #     print(self.v(t))
         return dP_dt
     

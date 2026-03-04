@@ -269,9 +269,10 @@ def test_evolution():
         """ Return the time needed for one calculation of the evolution """
     
         t = gett(t_end=galaxy_age, n=n)
-        B = getB(t, B0=1e13, field='ED')
+        B = getB(t, B0=1e9, field='CF')
         v = t*0 + 100e5
-        Mdot = t*0 + 1e12
+        
+        Mdot = t*0 + 1e8
         
         time0 = time() # mark the time
         t, P, stages = evolution(t=t, P0=1e-1, B=B, Omega=None, case='A',
@@ -279,7 +280,7 @@ def test_evolution():
         
         return time()-time0 # the time needed for n steps
     
-    N = [1000]
+    N = [100000]
     # N = [100, 300, 1000, 3000, 10_000, 30_000, 100_000] #, 300_000, 1_000_000]
     time_array = np.zeros(len(N))
     for i in range(len(N)):
@@ -287,3 +288,166 @@ def test_evolution():
     
     plt.plot(N, time_array)
 
+
+
+"""
+From old binary code
+"""
+
+# def GetMdot(rho, v, t):
+#     R_G = G * M_NS / v**2
+#     M_dot = pi * R_G**2 * rho * v
+#     M_dot = sp.interpolate.interp1d(t, M_dot, bounds_error=False,
+#                                 kind='linear', fill_value=0)
+#     return M_dot
+
+
+# def Getv(v, t):
+#     v = sp.interpolate.interp1d(t, v, bounds_error=False,
+#                                 kind='linear', fill_value=np.mean(v))
+#     return v
+
+
+# def GetB(B0, field, t):
+#     """ Returns B(t) or float """
+    
+#     if field == "CF" or not field:
+#         def B(t):
+#             try:
+#                 return B0 + np.zeros(len(t))
+#             except:
+#                 return B0
+    
+#     elif field == "ED":
+#         t_Ohm = galaxy_age / (4 * np.log(10))
+#         # t_Ohm = 1e8*year
+#         def B(t):
+#             return B0 * (exp(-t / t_Ohm))
+
+#     elif field == "HA":
+#         t_Ohm = 1e6 * year
+#         t_Hall = 1e4 / (B0 / 1e15) * year
+#         B_ref = B0 * np.exp(-3)
+#         def B(t):
+#             B = ((B0 * exp(-t / t_Ohm) /
+#                   (1 + t_Ohm / t_Hall * (1 - exp(-t / t_Ohm)))))
+#             if isinstance(t, int) or isinstance(t, float):
+#                 B = min(B, B_ref)
+#             else:
+#                 B[B < B_ref] = B_ref
+#             return B
+#         # t = np.append(t, 2*t[-1])
+#         # B = B(t)
+#         # B = sp.interpolate.interp1d(t, B, bounds_error=False,
+#         #                                 kind='linear', fill_value=B0)
+#         if isinstance(t, int) or isinstance(t, float):
+#             B = np.max(B_ref, B(t))
+#         else:
+#             t = np.append(t, 2*t[-1])
+#             B = B(t)
+#             B = sp.interpolate.interp1d(t, B, bounds_error=False,
+#                                         kind='linear', fill_value=B0)
+#     elif field == 'SIN':
+#         def B(t):
+#             omega = 1/(1e3*year)# just a const
+#             return B0 * (1 + 0.5*np.sin(omega * t))
+    
+#     else:
+#         print("Field model {} does not exist. There are only CF, ED and HA".format(field))
+
+#     return B
+
+
+# def Evolution(P0, B0, t, v, Mdot, field, max_step, case, Omega, first_stage=None):
+    
+#     """ First stage """
+#     t_start = t[0]
+#     B = GetB(B0, field, t)
+#     NS = Simulation(B, v, Mdot, field, case, Omega)
+#     NS_0 = NS
+    
+#     stage_names = ['E', 'P', 'A']
+#     stage_class = [Ejector, Propeller, Accretor]
+    
+#     NS = NS.first_stage(t_start, P0)
+#     for i in range(len(stage_names)):
+#         if stage_names[i] == first_stage:
+#             NS = stage_class[i](B, v, Mdot, field, case, Omega)
+#             break
+    
+#     """ Arrays """
+#     stages = np.array([])
+#     t_stages = np.array([])
+#     T = np.array([t_start])
+#     P = np.array([P0])
+    
+#     """ All stages """
+#     EPAG = np.zeros(4)
+#     EPAG_name = ['E', 'P', 'A', 'G']
+    
+#     to_time = time()
+#     error_set = [0], [0], [0], [0], NS_0, np.zeros(4)
+#     """ Stages calculation """
+#     while T[-1] < t[-1]:#0.9:
+#         from_time = time()
+#         if from_time-to_time > maxTrackTime:
+#             break
+        
+#         stage_name = NS.title()
+#         # print(stage_name)
+
+#         if len(stages) > 100:
+#             break
+    
+#         stages = np.append(stages, stage_name)
+#         t_stages = np.append(t_stages, T[-1])
+#         t = t[t>=T[-1]]
+        
+#         # print(T[-1], np.array([P[-1]]), np.array(t), max_step)
+#         message, solution, stage = NS.solution(T[-1], np.array([P[-1]]),
+#                                                np.array(t), max_step)
+#         # if len(stages) > 2:
+#         #     max_step = min(max_step, abs(t_stages[-1]-t_stages[-2]))
+#         if stage == "settle":
+#             T_cur, P_cur = solution
+#         elif message == "Georotator":
+#             T_cur, P_cur = solution
+#         else:
+#             T_cur =  np.array(solution.t)
+#             P_cur = np.array(solution.y)[0]
+        
+#         T = np.append(T, np.array(T_cur))
+#         P = np.append(P, np.array(P_cur))
+        
+#         if P[-1] == np.inf:
+#             idx = np.where(P==np.inf)[0][0]
+#             P = P[1:idx]
+#             T = T[1:idx]
+#             break
+        
+#         duration = T_cur[-1] - T_cur[0]
+        
+#         for i in range(len(EPAG)):
+#             if EPAG_name[i] == stage_name:
+#                 EPAG[i] += duration
+#         # else:
+#         #     print("There is no such stage as {}".format(stage_name))
+        
+#         NS = stage
+#         if NS == None:
+#             # print(solution.message)
+#             break
+
+#     # """ Only for popsynthesis-like calculations """
+#     # if solution.status != 0:
+#     #     print("\nError in track.Evolution\n")
+#     #     print(solution.message)
+#     #     return error_set
+
+#     EPAG = EPAG / (T[-1] - T[0])
+    
+#     T = T[1:len(T)]
+#     P = P[1:len(P)]
+#     t_stages = np.append(t_stages, T[-1])
+    
+#     return T, P, t_stages, stages, NS_0, EPAG

@@ -21,6 +21,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from main.constants import arr_size, galaxy_age, Gyr, Myr, year
 full_path = '/home/afoninamd/Downloads/test_new_10k/'
+full_path = '/home/afoninamd/Downloads/all_feathers/'
 # full_path = '/home/afoninamd/Downloads/realistic2/'
 path = '/home/afoninamd/Downloads/'
 res_name = 'realistic2/'
@@ -282,10 +283,10 @@ def rebin(nrebin=40): # new number of bins
      
     fig, axes = plt.subplots(figsize=(12 , 10), nrows=2, ncols=2)
     
-    axes[0,0].set_title(r'One phase ISM, constant field')
-    axes[0,1].set_title(r'One phase ISM, exponentially decaying field')
-    axes[1,0].set_title(r'Two phase ISM, constant field')
-    axes[1,1].set_title(r'Two phase ISM, exponentially decaying field')
+    axes[0,0].set_title(r'One-phase ISM, constant field')
+    axes[0,1].set_title(r'One-phase ISM, exponentially decaying field')
+    axes[1,0].set_title(r'Two-phase ISM, constant field')
+    axes[1,1].set_title(r'Two-phase ISM, exponentially decaying field')
                 
     for i in range(2):
         galaxy_type = ['simple','two_phase'][i]
@@ -384,7 +385,7 @@ def rebin(nrebin=40): # new number of bins
 
 # rebin(nrebin=40)
 
-def plotrrebin(nrebin=100,field = 'ED',  case = 'B', galaxy_type = 'two_phase'): # new number of bins
+def plotrrebin(nrebin=arr_size,field='ED',  case='B', galaxy_type='two_phase'): # new number of bins
     plt.rcParams['font.size'] = 16
     plt.rcParams['text.usetex'] = True
     os.makedirs('counts_rebinned/', exist_ok=True)
@@ -422,7 +423,7 @@ def plotrrebin(nrebin=100,field = 'ED',  case = 'B', galaxy_type = 'two_phase'):
         file_name = '{}_{}_{}_erosita{}_sum'.format(galaxy_type, field,
                                         case, '')
         data = pd.read_feather(full_path + file_name + '.feather')
-        
+        # print(data.columns)
         # x_arr = (bins[1:] + bins[:1]) / 2
         
         
@@ -461,7 +462,6 @@ def plotrrebin(nrebin=100,field = 'ED',  case = 'B', galaxy_type = 'two_phase'):
             # reg = 1000 # from kpc to pc
             # if i != 3:
                 
-                
             # bin_width = bins[-1] / (len(bins) / n_in_bin)
             # data_0 = data_0 / np.sum(data_0 * bin_width) * norm
             # std_0 = std_0 / np.sum(std_0 * bin_width) * norm
@@ -471,6 +471,8 @@ def plotrrebin(nrebin=100,field = 'ED',  case = 'B', galaxy_type = 'two_phase'):
             
             ax.plot(x_arr, norm*data_0, color)
             
+            if name == 'r' and cts_num == '':
+                print(x_arr[0]/np.sum(x_arr))
             
             """ The 99% line from the start """
             if False: # name == 'z' and cts_num == '-2':
@@ -490,7 +492,7 @@ def plotrrebin(nrebin=100,field = 'ED',  case = 'B', galaxy_type = 'two_phase'):
                 x = x_arr
                 cum_int = sp.integrate.cumulative_trapezoid(y, x, initial=0)
                 total = cum_int[-1]
-                threshold_value = 12.8
+                threshold_value = x[-1]-1
                 y1 = y[x>threshold_value]
                 x1 = x[x>threshold_value]
                 cum_int_last_Gyr = sp.integrate.cumulative_trapezoid(y1, x1, initial=0) 
@@ -542,13 +544,14 @@ def plotrrebin(nrebin=100,field = 'ED',  case = 'B', galaxy_type = 'two_phase'):
 
 """ HERE!!!! """
 # plotr()
-plt.close()
-for galaxy_type in ['simple', 'two_phase']:
-    for case in ['A', 'B', 'C']:
-        for field in ['CF', 'ED']:
-            pass
-            plotrrebin(case=case, field=field, galaxy_type=galaxy_type)
-            # break
+plotrrebin(case='A', field='CF', galaxy_type='two_phase')
+# plt.close()
+# for galaxy_type in ['simple', 'two_phase']:
+#     for case in ['A', 'B', 'C']:
+#         for field in ['CF', 'ED']:
+#             pass
+#             plotrrebin(case=case, field=field, galaxy_type=galaxy_type)
+#             # break
 
     # for i in range(2):
     #     galaxy_type = ['simple','two_phase'][i]
