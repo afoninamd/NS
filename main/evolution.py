@@ -14,7 +14,7 @@ from time import time
 from main.model import Object
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
-from main.constants import galaxy_age, year, G, M_NS, Gyr
+from main.constants import galaxy_age, year, G, M_NS, Gyr, R_NS
 t_Ohm = 1e6 * year
 
 
@@ -92,7 +92,7 @@ def getMdot(rho: np.array, v: np.array, t: np.array) -> np.array:
     """
     Returns an array of accretion rate values of length of the time array
     """
-    R_G = G * M_NS / v**2
+    R_G = 2 * G * M_NS / v**2
     Mdot = np.pi * R_G**2 * rho * v
     return Mdot
 
@@ -288,6 +288,24 @@ def test_evolution():
     
     plt.plot(N, time_array)
 
+
+def j_if_disc(B, v, M_dot):
+    R_t = 2e20
+    v_t = 10e5
+    
+    R_G = 2 * G * M_NS / v**2
+    # M_dot = np.pi * R_G**2 * rho * v
+    mu = B * R_NS**3
+    R_A = (mu**2 / (2 * M_dot * (2 * G * M_NS)**0.5))**(2/7)
+    j_t = v_t * R_G**(4/3) / R_t**(1/3)
+    
+    """ for binaries (commented) """
+    # Omega = 2*np.pi/year
+    # j_t = 0.25 * R_G**2 * Omega
+    
+    j_K = (G * M_NS * R_A)**0.5
+    
+    return j_t / j_K  # exceeds 1 -> disc
 
 
 """

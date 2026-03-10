@@ -53,6 +53,7 @@ def create_magnetar():
     
     pd.DataFrame.to_csv(df0, output_dir + 'distribution_{}_{}.csv'.format(kind, len(df0['P'])), sep=';')
 
-
+print("pulsar distribution...")
 create_pulsar()
+print("magnetar distribution...")
 create_magnetar()

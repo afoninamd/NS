@@ -17,8 +17,10 @@ import pandas as pd
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from pops.track import get_coordinates_velocities, evolution_galaxy_iterations
 from pops.observability import flux_to_counts_constants
-from main.evolution import gett
-from main.constants import galaxy_age, Gyr, N, output_dir
+from main.evolution import gett, j_if_disc
+from main.constants import galaxy_age, Gyr, N
+
+output_dir = 'result/uniform/'
 
 comm = MPI.COMM_WORLD
 crank = comm.Get_rank()
@@ -61,12 +63,16 @@ def calculations():
     vx = Vx / 1e5
     vy = Vy / 1e5
     vz = Vz / 1e5
+    
+    # vx = np.zeros(len(vx))
+    # vy = np.zeros(len(vx))
+    # vz = np.zeros(len(vx))
     # vx = (Vx+Vxpec) / 1e5
     # vy = (Vy+Vypec) / 1e5
     # vz = (Vz+Vzpec) / 1e5
                 
     for i in (range(start_idx, end_idx)): #tqdm
-    
+        # print(i)
         # print(f"Process {crank} handling index {i} (start = {start_idx}, end = {end_idx})")
         
         pos = [x[i], y[i], z[i]]  # kpc
@@ -84,11 +90,13 @@ def calculations():
             continue
         t = gett(t_end=galaxy_age, n=num)
         
-        nu, deltanu, cross, Seff = flux_to_counts_constants()  # for observability
+        # nu, deltanu, cross, Seff = flux_to_counts_constants()  # for observability
     
         for galaxy_type in ['simple', 'two_phase']:
             for field in ['CF', 'ED']:
-                for case in ['A', 'B', 'C', 'D']:
+                for case in ['A', 'B']:#, 'C', 'D']:
+                    if not (galaxy_type == 'simple' and field == 'CF' and case == 'A' or galaxy_type == 'two_phase' and field == 'ED' and case == 'B'):
+                        continue
                     file_name = output_dir + '{}_{}_{}_{}.txt'.format(crank, galaxy_type, field, case)
                     with open(file_name, 'a') as file:
                         res = evolution_galaxy_iterations(P0, t, xyz, v_xyz, B0, field, case,
@@ -109,7 +117,12 @@ def calculations():
                             # new_row = pd.DataFrame({'i': [i], 'accretor_part': [np.sum(weight)]})
                             # df = pd.concat([df, new_row], ignore_index=True)
                             
-                            file.write('{}\t{}\n'.format(i, np.float32(np.sum(weight))))
+                            """ Determinig the accretion disc presence """
+                            weight_disc = weight + np.zeros(len(weight))
+                            disc = j_if_disc(B=B1[1:], v=v1[1:], M_dot=Mdot1[1:])
+                            weight_disc[disc<1] = 0
+                            
+                            file.write('{}\t{}\t{}\n'.format(i, np.float32(np.sum(weight)), np.float32(np.sum(weight_disc))))
                             
                         # df = pd.DataFrame({'t': t1, 'stages': stages1})
                         #                 # 'P': P1, 'B': B1, 'v': v1, 'Mdot': Mdot1, 'phase': ph1,
@@ -146,6 +159,7 @@ def check_star(i):
 # check_star(10)
 
 calculations()
+    
 
 # for galaxy_type in ['simple', 'two_phase']:
 #     for field in ['CF', 'ED']:

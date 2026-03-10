@@ -72,6 +72,8 @@ cbins = 10**np.linspace(-4, 6, arr_size+1)
 vbins = np.linspace(0, 500, arr_size+1) * 1e5
 Tbins = 10**np.linspace(5, 9, arr_size+1) # better from 5 to 8
 tbins = np.linspace(0, galaxy_age, arr_size+1)
+Bbins = 10**np.linspace(8, 15, arr_size+1)
+Mbins = 10**np.linspace(5, 15, arr_size+1)
 
 
 def calculations(star_type):

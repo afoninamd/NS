@@ -44,7 +44,7 @@ def B_magnetar(N: int):
     # derive the mean and sigma from the real data
     B_std_m = np.std(B_tab)
     B_mean_m = np.mean(B_tab)
-    print(B_std_m, B_mean_m)
+    # print(B_std_m, B_mean_m)
     # create an array of B_power using the derived mean and sigma
     B_power = np.random.normal(loc=B_mean_m, scale=B_std_m, size=N)
     return 10**B_power
@@ -363,7 +363,9 @@ def distribution_mpi(N=100, kind='magnetar', crank=crank):
 
 # distribution_mpi(N=10000, kind='pulsar')
 
+print("pulsar distribution MPI...")
 distribution_mpi(N=N*9//10, kind='pulsar')
+print("magnetar distribution MPI...")
 distribution_mpi(N=N//10, kind='magnetar')
 
 # def Vpec(x: np.array, y: np.array, N: np.array, rlim=rgal):
