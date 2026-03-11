@@ -9,15 +9,16 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from main.constants import output_dir, arr_size
+from main.constants import arr_size
 import numpy as np
 import glob
 import pandas as pd
 import pyarrow.feather as feather
 
+output_dir = 'result/realistic/'
 
 def create_txt():
-    for addstring in ['', '_roman']:
+    for addstring in ['']:
         for galaxy_type in ['simple', 'two_phase']:
             for field in ['CF', 'ED']:
                 for case in ['A', 'B', 'C', 'D']:
@@ -111,7 +112,7 @@ def create_feather():
     for galaxy_type in ['simple', 'two_phase']:
         for field in ['CF', 'ED']:
             for case in ['A', 'B', 'C', 'D']:
-                for add_string in ['', '_roman']:
+                for add_string in ['']:
                     # for rand_i in range(N_files):
                     # name = '{}_{}_{}_{}_erosita{}'.format(galaxy_type, field,
                     #                                 case, star_type, add_string)
@@ -139,6 +140,13 @@ def create_feather():
                                         't': np.zeros(arr_size),
                                         't-2': np.zeros(arr_size),
                                         't-1': np.zeros(arr_size),
+                                        'B': np.zeros(arr_size),
+                                        'B-2': np.zeros(arr_size),
+                                        'B-1': np.zeros(arr_size),
+                                        'M': np.zeros(arr_size),
+                                        'M-2': np.zeros(arr_size),
+                                        'M-1': np.zeros(arr_size),
+                                        'P': np.zeros(arr_size),
                                         'f0': np.zeros(arr_size),
                                         'f1': np.zeros(arr_size),
                                         'c0': np.zeros(arr_size),
@@ -189,6 +197,13 @@ def create_feather():
                                         't': np.zeros(arr_size),
                                         't-2': np.zeros(arr_size),
                                         't-1': np.zeros(arr_size),
+                                        'B': np.zeros(arr_size),
+                                        'B-2': np.zeros(arr_size),
+                                        'B-1': np.zeros(arr_size),
+                                        'M': np.zeros(arr_size),
+                                        'M-2': np.zeros(arr_size),
+                                        'M-1': np.zeros(arr_size),
+                                        'P': np.zeros(arr_size),
                                         'f0': np.zeros(arr_size),
                                         'f1': np.zeros(arr_size),
                                         'c0': np.zeros(arr_size),
@@ -241,10 +256,62 @@ def create_feather():
     #                         feather.write_feather(df+df0, output_dir + name + '.feather')
 
 
+def create_npy():
+    
+    for galaxy_type in ['simple', 'two_phase']:
+        for field in ['CF', 'ED']:
+            for case in ['A', 'B', 'C', 'D']:
+                
+                pattern = f"{output_dir}/npy/*{galaxy_type}_{field}_{case}*Number_Rz.npy"
+            
+                files = glob.glob(pattern)
+                
+                Number_sum = None
+                
+                for file in files:
+                    data = np.load(file)
+                    # print(data[data!=0])
+                    if Number_sum is None:
+                        Number_sum = np.zeros_like(data)
+                
+                    Number_sum += data
+                
+                # print("Loaded", len(files), "cranks")
+                
+                Number_Rz = Number_sum
+                
+                name2d = '{}_{}_{}'.format(galaxy_type, field, case)
+                number_file = output_dir + name2d + '_Number_Rz.npy'
+                mdot_file   = output_dir + name2d + '_Mdot_Rz.npy'
+                
+                np.save(number_file, Number_Rz)
+                
+                
+                pattern = f"{output_dir}/npy/*{galaxy_type}_{field}_{case}*Mdot_Rz.npy"
+            
+                files = glob.glob(pattern)
+                
+                Number_sum = None
+                
+                for file in files:
+                    data = np.load(file)
+                    if Number_sum is None:
+                        Number_sum = np.zeros_like(data)
+                
+                    Number_sum += data
+                
+                # print("Loaded", len(files), "cranks")
+                
+                Mdot_Rz = Number_sum
+                np.save(mdot_file, Mdot_Rz)
+    
+
 print("create txt...")
 create_txt()
 print("create feather...")
 create_feather()
+print("create npy...")
+create_npy()
 
 
 

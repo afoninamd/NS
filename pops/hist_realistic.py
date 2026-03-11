@@ -554,43 +554,12 @@ def plotrrebin(nrebin=arr_size,field='ED',  case='B', galaxy_type='two_phase'): 
 
 
 def MdotMap(galaxy_type='two_phase', field='ED', case='B'):
+    name2d = '{}_{}_{}'.format(galaxy_type, field, case)
+    number_file = output_dir + name2d + '_Number_Rz.npy'
+    mdot_file   = output_dir + name2d + '_Mdot_Rz.npy'
     
-    
-    pattern = f"{output_dir}/npy/*{galaxy_type}_{field}_{case}*Number_Rz.npy"
-
-    files = glob.glob(pattern)
-    
-    Number_sum = None
-    
-    for file in files:
-        data = np.load(file)
-        # print(data[data!=0])
-        if Number_sum is None:
-            Number_sum = np.zeros_like(data)
-    
-        Number_sum += data
-    
-    print("Loaded", len(files), "cranks")
-    
-    Number_Rz = Number_sum
-    
-    
-    pattern = f"{output_dir}/npy/*{galaxy_type}_{field}_{case}*Mdot_Rz.npy"
-
-    files = glob.glob(pattern)
-    
-    Number_sum = None
-    
-    for file in files:
-        data = np.load(file)
-        if Number_sum is None:
-            Number_sum = np.zeros_like(data)
-    
-        Number_sum += data
-    
-    print("Loaded", len(files), "cranks")
-    
-    Mdot_Rz = Number_sum
+    Mdot_Rz = np.load(mdot_file)
+    Number_Rz = np.load(number_file)
     # print(Mdot_Rz[Mdot_Rz!=0])
     # print(Mdot_Rz[Number_Rz!=0])
     
