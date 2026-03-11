@@ -23,7 +23,7 @@ mw = gp.MilkyWayPotential()
 # help(gp.MilkyWayPotential) # type ?? after the function in the terminal to find out the details
 
 N = 10000  # the number of tracks overall
-arr_size = 1000
+arr_size = 1000 # CHANGE IT TO 1000
 
 """ Physical constants """
 c = const.c.cgs.value                  # speed of light in vacuum,   [cm / s]

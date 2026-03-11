@@ -21,11 +21,12 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from main.constants import arr_size, galaxy_age, Gyr, Myr, year
-full_path = '/home/afoninamd/Downloads/test_new_10k/'
-full_path = '/home/afoninamd/Downloads/all_feathers/'
-# full_path = '/home/afoninamd/Downloads/realistic2/'
-path = '/home/afoninamd/Downloads/'
-res_name = 'realistic2/'
+# full_path = '/home/afoninamd/Downloads/test_new_10k/'
+# full_path = '/home/afoninamd/Downloads/all_feathers/'
+# # full_path = '/home/afoninamd/Downloads/realistic2/'
+# path = '/home/afoninamd/Downloads/'
+full_path = '/home/afoninamd/Documents/NS/project/pops/result/realistic/'
+# res_name = 'realistic/'
 # path = '/home/afoninamd/Documents/project/pops/result/realistic/'
 # res_name = ''
 Rbins = np.linspace(0, 20, arr_size+1) # from the GC
@@ -37,7 +38,7 @@ vbins = np.linspace(0, 500, arr_size+1) * 1e5
 Tbins = 10**np.linspace(5, 9, arr_size+1) # better from 5 to 8
 tbins = np.linspace(0, galaxy_age, arr_size+1)
 Bbins = 10**np.linspace(8, 15, arr_size+1) # magnetic field values
-Mbins = 10**np.linspace(5, 15, arr_size+1)# accretion rates in g/s
+Mbins = 10**np.linspace(2, 10, arr_size+1)# accretion rates in g/s
 Pbins = 10**np.linspace(0, 8, arr_size+1) # spin periods for the P-A transition
 
 """ Bins for the 2d histogram """
@@ -395,22 +396,22 @@ def rebin(nrebin=40): # new number of bins
 
 # rebin(nrebin=40)
 
-def plotrrebin(nrebin=arr_size,field='ED',  case='B', galaxy_type='two_phase'): # new number of bins
+def plotrrebin(nrebin=arr_size,field='CF',  case='A', galaxy_type='simple'): # new number of bins
     plt.rcParams['font.size'] = 16
     plt.rcParams['text.usetex'] = True
     os.makedirs('counts_rebinned/', exist_ok=True)
-    fig, axes = plt.subplots(figsize=(12 , 15), nrows=3, ncols=2)
+    fig, axes = plt.subplots(figsize=(12 , 15), nrows=3, ncols=3)
     # fig, ax = plt.subplots()
     axes = axes.flatten()
-    names = ['r', 'R', 'z', 'v', 't', 'T']
+    names = ['r', 'R', 'z', 'v', 't', 'T', 'P', 'B', 'M']
     
-    dim = [', kpc', ', kpc', ', kpc', ', km s$^{-1}$', ', Gyr', ', K']
-    dim1 = [', kpc$^{-1}$', ', kpc$^{-1}$', ', kpc$^{-1}$', ', (km s$^{-1}$)$^{-1}$', ', Gyr$^{-1}$', ', K$^{-1}$']
+    dim = [', kpc', ', kpc', ', kpc', ', km s$^{-1}$', ', Gyr', ', K', '', '', '']
+    dim1 = [', kpc$^{-1}$', ', kpc$^{-1}$', ', kpc$^{-1}$', ', (km s$^{-1}$)$^{-1}$', ', Gyr$^{-1}$', ', K$^{-1}$', '', '', '']
     
     N = 10_000_000
     norm = 300_000_000 // N
     
-    for i in range(6):
+    for i in range(9):
         # if i != 3:
         #     continue
         ax = axes[i]
@@ -426,14 +427,15 @@ def plotrrebin(nrebin=arr_size,field='ED',  case='B', galaxy_type='two_phase'): 
         #     ax.set_xlim([0, 10])
         # else:
         #     ax.set_xlim([0, 1.5])
-        bins = [rbins, Rbins, zbins, vbins/1e5, tbins/Gyr, Tbins][i]
+        bins = [rbins, Rbins, zbins, vbins/1e5, tbins/Gyr, Tbins, Pbins, Bbins, Mbins][i]
         file_name = '{}_{}_{}_erosita{}_std'.format(galaxy_type, field, case, '')
         data_std = pd.read_feather(full_path + file_name + '.feather') #path + res_name
         
         file_name = '{}_{}_{}_erosita{}_sum'.format(galaxy_type, field,
                                         case, '')
         data = pd.read_feather(full_path + file_name + '.feather')
-        # print(data.columns)
+        
+        print(data.columns)
         # x_arr = (bins[1:] + bins[:1]) / 2
         
         
@@ -447,6 +449,7 @@ def plotrrebin(nrebin=arr_size,field='ED',  case='B', galaxy_type='two_phase'): 
             except:
                 continue
             data_0 = np.array(data[name+cts_num])
+            # print(data_0)
             
             data_0 = data_0 * bins[-1] / len(bins) # new dim
             std_0 = std_0 * bins[-1] / len(bins) # new dim
@@ -565,7 +568,7 @@ def MdotMap(galaxy_type='two_phase', field='ED', case='B'):
     
     plt.figure(figsize=(7,5))
     
-    plt.pcolormesh(R2bins, z2bins, Mdot_Rz.T, shading='auto') # Number_Rz also an interesting thing
+    plt.pcolormesh(R2bins, z2bins, Number_Rz.T, shading='auto') # Number_Rz also an interesting thing
     plt.xlabel('R')
     plt.ylabel('z')
     plt.title('Mdot(R,z)')
@@ -577,11 +580,11 @@ def MdotMap(galaxy_type='two_phase', field='ED', case='B'):
     plt.show()
 
 # MdotMap(galaxy_type='two_phase', field='ED', case='B')
-MdotMap(galaxy_type='simple', field='CF', case='A')
+# MdotMap(galaxy_type='simple', field='CF', case='A')
 
 """ HERE!!!! """
 # plotr()
-# plotrrebin(case='A', field='CF', galaxy_type='two_phase')
+plotrrebin(case='A', field='CF', galaxy_type='simple')
 
 
 

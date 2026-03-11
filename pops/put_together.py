@@ -155,8 +155,8 @@ def create_feather():
                     
                     N_files = 0
                     
-                    name0 = '*{}_{}_{}_pulsar_erosita{}'.format(galaxy_type, field,
-                                                    case, add_string)
+                    name0 = '*{}_{}_{}*'.format(galaxy_type, field,
+                                                    case)
                     pattern = output_dir + 'feather/*_' + name0 + '.feather'
                     for file_name in glob.glob(pattern):
                         N_files += 1
@@ -174,6 +174,7 @@ def create_feather():
                     
                     name = '{}_{}_{}_erosita{}_{}'.format(galaxy_type, field,
                                                 case, add_string, 'sum')
+                    
                     feather.write_feather(df_sum, output_dir + name + '.feather')
                     
                     
@@ -219,10 +220,34 @@ def create_feather():
                             df = df_pulsar + df_magnetar
                         except OSError:
                             df = df_pulsar
+            
                         df_temp = df - df_mean
                         df_square = df_square + df_temp.pow(2)
                     
                     df_std = df_square.pow(0.5) / (N_files-1)**0.5 * N_files
+                    
+                    # for col in df_square.columns:
+                    #     arr = df_square[col].values
+                    #     # Set tiny negatives to zero
+                    #     arr_clean = np.where(arr < 0, 0, arr)
+                    #     sqrt_arr = np.sqrt(arr_clean)
+                    #     df_std[col] = sqrt_arr / (N_files-1)**0.5 * N_files
+                    
+                    for col in df_std.columns:
+                        if df_std[col].dtype == 'complex128' or df_std[col].dtype == 'complex64':
+                            df_std[col] = df_std[col].values.real
+                    
+                    
+                    # for col in df_square.columns:
+                    #     arr = df_square.values  # ← Check df_std, not df_sum
+                    #     if np.iscomplexobj(arr):
+                    #         print(f"❌ Column {col} contains complex numbers! dtype={arr.dtype}")
+                    #         print(f"   First 5 values: {arr[:5]}")
+                    #         print(f"   Imaginary parts: {arr.imag[:5]}")
+                    #     else:
+                    #         print(f"✅ Column {col} is real, dtype={arr.dtype}")
+                    
+                    feather.write_feather(df_std, output_dir + name + '.feather')
                     # print(df_std, N_files)
                     # print(N_files)
                     # if not N_files:
@@ -233,6 +258,7 @@ def create_feather():
                     
                     name = '{}_{}_{}_erosita{}_{}'.format(galaxy_type, field,
                                                 case, add_string, 'std')
+                    
                     feather.write_feather(df_std, output_dir + name + '.feather')
                         
                         

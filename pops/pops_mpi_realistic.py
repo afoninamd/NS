@@ -76,7 +76,7 @@ vbins = np.linspace(0, 500, arr_size+1) * 1e5
 Tbins = 10**np.linspace(5, 9, arr_size+1) # better from 5 to 8
 tbins = np.linspace(0, galaxy_age, arr_size+1)
 Bbins = 10**np.linspace(8, 15, arr_size+1) # magnetic field values
-Mbins = 10**np.linspace(5, 15, arr_size+1)# accretion rates in g/s
+Mbins = 10**np.linspace(2, 10, arr_size+1)# accretion rates in g/s
 Pbins = 10**np.linspace(0, 8, arr_size+1) # spin periods for the P-A transition
 
 """ Bins for the 2d histogram """
