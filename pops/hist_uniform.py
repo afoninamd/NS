@@ -17,14 +17,16 @@ import matplotlib as mpl
 from tqdm import tqdm
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from main.constants import N, output_dir, G, M_NS, m_p, galaxy_age
+from main.constants import N, G, M_NS, m_p, galaxy_age
 from main.model import Object
 
+output_dir = 'result/uniform/'
+# N = 10000000
 mpl.rcParams["text.usetex"] = True
 
-csize = 480
+csize = 96
 
-output_dir=''
+# output_dir=''
 npy_dir = output_dir + 'npy/'
 if not os.path.exists(npy_dir):
     os.makedirs(npy_dir)
@@ -78,6 +80,14 @@ def create_uniform(N, res_name):
         galaxy_type_arr = ['two_phase']
         field_arr = ['ED']
         case_arr = ['B']
+    if res_name == 'result':
+        galaxy_type_arr = ['two_phase']
+        field_arr = ['ED']
+        case_arr = ['B']
+    # if res_name == 'result':
+    #     galaxy_type_arr = ['simple']
+    #     field_arr = ['CF']
+    #     case_arr = ['A']
         
     
     for galaxy_type in galaxy_type_arr:
@@ -85,7 +95,7 @@ def create_uniform(N, res_name):
             for case in case_arr:
                 Array = np.zeros([len(Vb)-1, len(Pb)-1, len(Bb)-1, len(Zb)-1, len(Rb)-1], dtype=np.float32)
                 for crank in range(csize):
-                    file_name = res_name+'/result/uniform/{}_{}_{}_{}'.format(crank, galaxy_type, field, case)
+                    file_name = res_name+'/uniform/{}_{}_{}_{}'.format(crank, galaxy_type, field, case)
                     data = np.loadtxt(file_name+'.txt', dtype=float)
                     data = np.array(data)
                     try:
@@ -127,7 +137,7 @@ def create_uniform(N, res_name):
     # print(i_array)
 
 
-def plot_uniform(galaxy_type='simple', field='ED', case='A', res_name = 'result3'):
+def plot_uniform(galaxy_type='two_phase', field='ED', case='B', res_name = 'result'):
     # loaded_array = np.load(npy_dir+'{}_{}_{}_{}.npy'.format(galaxy_type, field, case, 1_000_000))
     # N_tracks = '1 million'
     # if (case == 'A' or case == 'C') and galaxy_type == 'simple' and field == 'CF':
@@ -137,8 +147,8 @@ def plot_uniform(galaxy_type='simple', field='ED', case='A', res_name = 'result3
     #     loaded_array += np.load(npy_dir+'{}_{}_{}_{}.npy'.format(galaxy_type, field, case, 9_000_000))
     
     
-    loaded_array = np.load(npy_dir+'{}_{}_{}_{}.npy'.format(galaxy_type, field, case, 1_000_000))
-    loaded_array += np.load(npy_dir+'{}_{}_{}_{}.npy'.format(galaxy_type, field, case, 9_000_000))
+    # loaded_array = np.load(npy_dir+'{}_{}_{}_{}.npy'.format(galaxy_type, field, case, 1_000_000))
+    loaded_array = np.load(npy_dir+'{}_{}_{}_{}.npy'.format(galaxy_type, field, case, 10_000_000))
     
     
     # title = 'Galaxy is {}, field {}, propeller {}, {} tracks'.format(galaxy_type, field, case, N_tracks)
@@ -217,7 +227,10 @@ def plot_uniform(galaxy_type='simple', field='ED', case='A', res_name = 'result3
                 cnt = ax.contour(x_edges, y_edges, smoothed_counts, levels, colors='white', rasterized=True, linewidths=0.5,
                                     vmin=vmin, vmax=vmax)
                 mpl.rcParams["text.usetex"] = False
-                ax.clabel(cnt, levels, fontsize=10, fmt='%r') #, manual=True) #, fmt='%.1f')
+                try:
+                    ax.clabel(cnt, levels, fontsize=10, fmt='%r') #, manual=True) #, fmt='%.1f')
+                except:
+                    pass
                 mpl.rcParams["text.usetex"] = True
                 
                 # ax.pcolormesh(x, y, z, cmap='RdBu', vmin=z_min, vmax=z_max)
@@ -241,9 +254,9 @@ def plot_uniform(galaxy_type='simple', field='ED', case='A', res_name = 'result3
     fig.savefig(output_dir + f'figures/triangle_{galaxy_type}_{field}_{case}.pdf', bbox_inches='tight')
 
 
-def plot_uniform_article(N=9_000_000, case='A', galaxy_type='simple', field='CF'):
-    loaded_array = np.load(npy_dir+'{}_{}_{}_{}.npy'.format(galaxy_type, field, case, 1_000_000))
-    loaded_array += np.load(npy_dir+'{}_{}_{}_{}.npy'.format(galaxy_type, field, case, 9_000_000))
+def plot_uniform_article(N=10_000_000, case='A', galaxy_type='simple', field='CF'):
+    loaded_array = np.load(npy_dir+'{}_{}_{}_{}.npy'.format(galaxy_type, field, case, 10_000_000))
+    # loaded_array += np.load(npy_dir+'{}_{}_{}_{}.npy'.format(galaxy_type, field, case, 9_000_000))
     loaded_array = loaded_array / 10e6 * arr_size**2
     # norm_const = np.sum(loaded_array)
     # N_tracks = '10 million'
@@ -380,7 +393,7 @@ def plot_uniform_article(N=9_000_000, case='A', galaxy_type='simple', field='CF'
     fig.savefig(output_dir + f'figures/triangle{case}.pdf', bbox_inches='tight')
 
 
-# create_uniform(9_000_000, res_name='result2')
+# create_uniform(10_000_000, res_name='result')
 # create_uniform(1_000_000, res_name='result1')
 # create_uniform(9_000_000, res_name='result3')
 # for galaxy_type in ['simple', 'two_phase']:

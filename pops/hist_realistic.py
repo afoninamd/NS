@@ -42,7 +42,7 @@ Pbins = 10**np.linspace(0, 8, arr_size+1) # spin periods for the P-A transition
 
 """ Bins for the 2d histogram """
 R2bins = np.linspace(0, 20, 100+1)
-z2bins = np.linspace(0, 5, 100+1)
+z2bins = np.linspace(0, 2, 100+1)
 
 output_dir = 'result/realistic/'
 
@@ -577,7 +577,7 @@ def MdotMap(galaxy_type='two_phase', field='ED', case='B'):
     plt.show()
 
 # MdotMap(galaxy_type='two_phase', field='ED', case='B')
-MdotMap(galaxy_type='two_phase', field='ED', case='A')
+MdotMap(galaxy_type='simple', field='CF', case='A')
 
 """ HERE!!!! """
 # plotr()
