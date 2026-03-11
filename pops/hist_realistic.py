@@ -15,6 +15,7 @@ from PyPDF2 import PdfMerger
 import scipy as sp
 import matplotlib as mpl
 from tqdm import tqdm
+import glob
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
@@ -35,6 +36,15 @@ cbins = 10**np.linspace(-4, 6, arr_size+1)
 vbins = np.linspace(0, 500, arr_size+1) * 1e5
 Tbins = 10**np.linspace(5, 9, arr_size+1) # better from 5 to 8
 tbins = np.linspace(0, galaxy_age, arr_size+1)
+Bbins = 10**np.linspace(8, 15, arr_size+1) # magnetic field values
+Mbins = 10**np.linspace(5, 15, arr_size+1)# accretion rates in g/s
+Pbins = 10**np.linspace(0, 8, arr_size+1) # spin periods for the P-A transition
+
+""" Bins for the 2d histogram """
+R2bins = np.linspace(0, 20, 100+1)
+z2bins = np.linspace(0, 5, 100+1)
+
+output_dir = 'result/realistic/'
 
 # for galaxy_type in ['simple']:#, 'two_phase']:
 #     for field in ['CF']:#, 'ED']:
@@ -542,9 +552,70 @@ def plotrrebin(nrebin=arr_size,field='ED',  case='B', galaxy_type='two_phase'): 
     fig.suptitle('{}_{}_{}'.format(galaxy_type, field, case))
     fig.savefig('counts_rebinned/{}_{}_{}.pdf'.format(galaxy_type, field, case), format='pdf')
 
+
+def MdotMap(galaxy_type='two_phase', field='ED', case='B'):
+    
+    
+    pattern = f"{output_dir}/npy/*{galaxy_type}_{field}_{case}*Number_Rz.npy"
+
+    files = glob.glob(pattern)
+    
+    Number_sum = None
+    
+    for file in files:
+        data = np.load(file)
+        # print(data[data!=0])
+        if Number_sum is None:
+            Number_sum = np.zeros_like(data)
+    
+        Number_sum += data
+    
+    print("Loaded", len(files), "cranks")
+    
+    Number_Rz = Number_sum
+    
+    
+    pattern = f"{output_dir}/npy/*{galaxy_type}_{field}_{case}*Mdot_Rz.npy"
+
+    files = glob.glob(pattern)
+    
+    Number_sum = None
+    
+    for file in files:
+        data = np.load(file)
+        if Number_sum is None:
+            Number_sum = np.zeros_like(data)
+    
+        Number_sum += data
+    
+    print("Loaded", len(files), "cranks")
+    
+    Mdot_Rz = Number_sum
+    # print(Mdot_Rz[Mdot_Rz!=0])
+    # print(Mdot_Rz[Number_Rz!=0])
+    
+    plt.figure(figsize=(7,5))
+    
+    plt.pcolormesh(R2bins, z2bins, Mdot_Rz.T, shading='auto') # Number_Rz also an interesting thing
+    plt.xlabel('R')
+    plt.ylabel('z')
+    plt.title('Mdot(R,z)')
+    
+    cbar = plt.colorbar()
+    cbar.set_label('Mdot')
+    
+    plt.tight_layout()
+    plt.show()
+
+# MdotMap(galaxy_type='two_phase', field='ED', case='B')
+MdotMap(galaxy_type='two_phase', field='ED', case='A')
+
 """ HERE!!!! """
 # plotr()
-plotrrebin(case='A', field='CF', galaxy_type='two_phase')
+# plotrrebin(case='A', field='CF', galaxy_type='two_phase')
+
+
+
 # plt.close()
 # for galaxy_type in ['simple', 'two_phase']:
 #     for case in ['A', 'B', 'C']:

@@ -13,7 +13,9 @@ import pandas as pd
 import glob
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from main.constants import N, output_dir
+from main.constants import N
+
+output_dir = 'result/realistic/'
 
 
 def create_pulsar():

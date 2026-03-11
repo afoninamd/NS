@@ -18,7 +18,10 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from pops.track import get_coordinates_velocities, evolution_galaxy_iterations
 from pops.observability import flux_to_counts_constants, one_observability
 from main.evolution import gett, star_formation_history
-from main.constants import galaxy_age, N, output_dir, R0, arr_size, Gyr
+from main.constants import galaxy_age, N, R0, arr_size, Gyr
+
+output_dir = 'result/realistic/'
+os.makedirs(output_dir + 'npy', exist_ok=True)
 
 comm = MPI.COMM_WORLD
 crank = comm.Get_rank()
@@ -72,9 +75,13 @@ cbins = 10**np.linspace(-4, 6, arr_size+1)
 vbins = np.linspace(0, 500, arr_size+1) * 1e5
 Tbins = 10**np.linspace(5, 9, arr_size+1) # better from 5 to 8
 tbins = np.linspace(0, galaxy_age, arr_size+1)
-Bbins = 10**np.linspace(8, 15, arr_size+1)
-Mbins = 10**np.linspace(5, 15, arr_size+1)
+Bbins = 10**np.linspace(8, 15, arr_size+1) # magnetic field values
+Mbins = 10**np.linspace(5, 15, arr_size+1)# accretion rates in g/s
+Pbins = 10**np.linspace(0, 8, arr_size+1) # spin periods for the P-A transition
 
+""" Bins for the 2d histogram """
+R2bins = np.linspace(0, 20, 100+1)
+z2bins = np.linspace(0, 5, 100+1)
 
 def calculations(star_type):
    
@@ -119,6 +126,9 @@ def calculations(star_type):
     vx = (Vx+Vxpec) / 1e5
     vy = (Vy+Vypec) / 1e5
     vz = (Vz+Vzpec) / 1e5
+    # vx = (Vx+Vxpec) / 1e5 * 0
+    # vy = (Vy+Vypec) / 1e5* 0
+    # vz = (Vz+Vzpec) / 1e5* 0
     """ for the Roman telescope """
     def module(array):
         return (array[0]**2 + array[1]**2 + array[2]**2)**0.5
@@ -129,41 +139,69 @@ def calculations(star_type):
     for galaxy_type in ['simple', 'two_phase']:
         for field in ['CF', 'ED']:
             for case in ['A', 'B', 'C', 'D']:
-                for add_string in ['', '_roman']:
+                add_string = ''
+                # for add_string in ['', '_roman']:
                     # df0 = pd.DataFrame({'R': Rcounts, 'r': rcounts, 'z': zcounts,
                     #                     'v': vcounts, 'T': Tcounts,
                     #                     'f0': f0counts, 'f1': f1counts,
                     #                     'c0': c0counts, 'c1': c1counts})
-                    df0 = pd.DataFrame({'R': np.zeros(arr_size),
-                                        'R-2': np.zeros(arr_size),
-                                        'R-1': np.zeros(arr_size),
-                                        'r': np.zeros(arr_size),
-                                        'r-2': np.zeros(arr_size),
-                                        'r-1': np.zeros(arr_size),
-                                        'z': np.zeros(arr_size),
-                                        'z-2': np.zeros(arr_size),
-                                        'z-1': np.zeros(arr_size),
-                                        'v': np.zeros(arr_size),
-                                        'v-2': np.zeros(arr_size),
-                                        'v-1': np.zeros(arr_size),
-                                        'T': np.zeros(arr_size),
-                                        'T-2': np.zeros(arr_size),
-                                        'T-1': np.zeros(arr_size),
-                                        't': np.zeros(arr_size),
-                                        't-2': np.zeros(arr_size),
-                                        't-1': np.zeros(arr_size),
-                                        'f0': np.zeros(arr_size),
-                                        'f1': np.zeros(arr_size),
-                                        'c0': np.zeros(arr_size),
-                                        'c1': np.zeros(arr_size)
-                                    })
-                    float_cols = df0.select_dtypes(include=['float64']).columns
-                    df0[float_cols] = df0[float_cols].astype('float32')
-                    
-                    name = 'feather/{}_{}_{}_{}_{}_erosita{}'.format(crank, galaxy_type, field,
-                                                    case, star_type, add_string)
-                    feather.write_feather(df0, output_dir + name + '.feather')
+                df0 = pd.DataFrame({'R': np.zeros(arr_size),
+                                    'R-2': np.zeros(arr_size),
+                                    'R-1': np.zeros(arr_size),
+                                    'r': np.zeros(arr_size),
+                                    'r-2': np.zeros(arr_size),
+                                    'r-1': np.zeros(arr_size),
+                                    'z': np.zeros(arr_size),
+                                    'z-2': np.zeros(arr_size),
+                                    'z-1': np.zeros(arr_size),
+                                    'v': np.zeros(arr_size),
+                                    'v-2': np.zeros(arr_size),
+                                    'v-1': np.zeros(arr_size),
+                                    'T': np.zeros(arr_size),
+                                    'T-2': np.zeros(arr_size),
+                                    'T-1': np.zeros(arr_size),
+                                    't': np.zeros(arr_size),
+                                    't-2': np.zeros(arr_size),
+                                    't-1': np.zeros(arr_size),
+                                    'B': np.zeros(arr_size),
+                                    'B-2': np.zeros(arr_size),
+                                    'B-1': np.zeros(arr_size),
+                                    'M': np.zeros(arr_size),
+                                    'M-2': np.zeros(arr_size),
+                                    'M-1': np.zeros(arr_size),
+                                    'P': np.zeros(arr_size),
+                                    'f0': np.zeros(arr_size),
+                                    'f1': np.zeros(arr_size),
+                                    'c0': np.zeros(arr_size),
+                                    'c1': np.zeros(arr_size)
+                                })
+                float_cols = df0.select_dtypes(include=['float64']).columns
+                df0[float_cols] = df0[float_cols].astype('float32')
+                
+                name = 'feather/{}_{}_{}_{}_{}_erosita{}'.format(crank, galaxy_type, field,
+                                                case, star_type, add_string)
+                feather.write_feather(df0, output_dir + name + '.feather')
     
+    for galaxy_type in ['simple', 'two_phase']:
+        for field in ['CF', 'ED']:
+            for case in ['A', 'B', 'C', 'D']:
+                """ Two-d map for Mdot """
+                name2d = 'npy/{}_{}_{}_{}_{}'.format(crank, galaxy_type, field,
+                                                case, star_type)
+                nR = len(R2bins) - 1
+                nz = len(z2bins) - 1
+                shape = (nR, nz)
+            
+                number_file = output_dir + name2d + '_Number_Rz.npy'
+                mdot_file   = output_dir + name2d + '_Mdot_Rz.npy'
+                
+                if not os.path.exists(number_file):
+                    np.save(number_file, np.zeros(shape, dtype='float32'))
+                
+                if not os.path.exists(mdot_file):
+                    np.save(mdot_file, np.zeros(shape, dtype='float32'))
+    
+    """ Starting reading the files """
     for i in (range(start_idx, end_idx)): #tqdm
     
         # print(f"Process {crank} handling index {i} (start = {start_idx}, end = {end_idx})")
@@ -192,6 +230,7 @@ def calculations(star_type):
                                                       plot=0, iterations=3,
                                                       galaxy_type=galaxy_type)
                     t1, P1, B1, stages1, v1, Mdot1, ph1, x1, y1, z1, vx1, vy1, vz1 = res
+                    z1 = np.abs(z1) # it is symmetric relative to the galactic plane anyway
                     
                         # for sfr in [True, False]:
                         #     name = output_dir + file_name + '_sfr{}'.format(sfr)
@@ -237,136 +276,180 @@ def calculations(star_type):
                         with open(file_name + '_roman.txt', 'a') as file:
                             file.write('{}\t{}\t{}\t{}\t{}\n'.format(i, np.float32(np.sum(wE)), np.float32(np.sum(wP)), np.float32(np.sum(wA)), np.float32(np.sum(wG))))
                     
-                    """ Does Erosita see it? """
+                    """ Does it accrete and does Erosita see it? """
                     if len(stages1[stages1==3]) > 0:
                         T, f0, f1, c0, c1 = one_observability(t1, stages1, x1, y1, z1, B1, Mdot1,
                                                               nu, deltanu, cross, Seff)
-                        if len(c0[c0>1e-4]) > 0:
+                        # if len(c0[c0>1e-4]) > 0:
                             
-                            weight1 = np.zeros(len(weight))
-                            weight2 = np.zeros(len(weight))
-                            weight1[::] = weight[::]
-                            weight2[::] = weight[::]
-                            weight1[c1[1:]<1e-1] = 0
-                            weight2[c1[1:]<1e-2] = 0
-                            
-                            R = (x1[1:]**2+y1[1:]**2+z1[1:]**2)**0.5
-                            Rcounts, _ = np.histogram(R, bins=Rbins, weights=weight)
-                            R2counts, _ = np.histogram(R, bins=Rbins, weights=weight2)
-                            R1counts, _ = np.histogram(R, bins=Rbins, weights=weight1)
-                            
-                            r = (x1[1:]**2+(y1[1:]-R0)**2+z1[1:]**2)**0.5
-                            rcounts, _ = np.histogram(r, bins=rbins, weights=weight)
-                            r2counts, _ = np.histogram(r, bins=rbins, weights=weight2)
-                            r1counts, _ = np.histogram(r, bins=rbins, weights=weight1)
-                            
-                            ztemp = z1[1:]
-                            zcounts, _ = np.histogram(ztemp, bins=zbins, weights=weight)
-                            z2counts, _ = np.histogram(ztemp, bins=zbins, weights=weight2)
-                            z1counts, _ = np.histogram(ztemp, bins=zbins, weights=weight1)
-                            
-                            vtemp = v1[1:]
-                            vcounts, _ = np.histogram(vtemp, bins=vbins, weights=weight)
-                            v2counts, _ = np.histogram(vtemp, bins=vbins, weights=weight2)
-                            v1counts, _ = np.histogram(vtemp, bins=vbins, weights=weight1)
-                            
-                            Ttemp = T[1:]
-                            Tcounts, _ = np.histogram(Ttemp, bins=Tbins, weights=weight)
-                            T2counts, _ = np.histogram(Ttemp, bins=Tbins, weights=weight2)
-                            T1counts, _ = np.histogram(Ttemp, bins=Tbins, weights=weight1)
-                            
-                            ttemp = t1[1:]
-                            accretor_weight = np.zeros(len(weight))
-                            accretor_weight[::] = weight[::]
-                            accretor_weight[stages1[1:]!=3] = 0
-                            tcounts, _ = np.histogram(ttemp, bins=tbins, weights=accretor_weight)
-                            t2counts, _ = np.histogram(ttemp, bins=tbins, weights=weight2)
-                            t1counts, _ = np.histogram(ttemp, bins=tbins, weights=weight1)
-                            
-                            f0counts, _ = np.histogram(f0[1:], bins=fbins, weights=weight)
-                            f1counts, _ = np.histogram(f1[1:], bins=fbins, weights=weight)
-                            c0counts, _ = np.histogram(c0[1:], bins=cbins, weights=weight)
-                            c1counts, _ = np.histogram(c1[1:], bins=cbins, weights=weight)
-                            
-                            df = pd.DataFrame({'R': Rcounts, 'R-2': R2counts, 'R-1': R1counts,
-                                               'r': rcounts, 'r-2': r2counts, 'r-1': r1counts,
-                                               'z': zcounts, 'z-2': z2counts, 'z-1': z1counts,
-                                               'v': vcounts, 'v-2': v2counts, 'v-1': v1counts,
-                                               'T': Tcounts, 'T-2': T2counts, 'T-1': T1counts,
-                                               't': tcounts, 't-2': t2counts, 't-1': t1counts,
-                                               'f0': f0counts, 'f1': f1counts,
-                                               'c0': c0counts, 'c1': c1counts})
-                            float_cols = df.select_dtypes(include=['float64']).columns
-                            df[float_cols] = df[float_cols].astype('float32')
-                            
-                            name = 'feather/{}_{}_{}_{}_{}_erosita'.format(crank, galaxy_type, field,
-                                                            case, star_type)
-                            df0 = pd.read_feather(output_dir + name + '.feather')
-                            feather.write_feather(df+df0, output_dir + name + '.feather')
-                            
-                            """ For Erosita + Roman """
-                            roman = np.zeros(len(x1))
-                            roman[1:][cond] = 1
-                            weight = weight * roman[1:]
-                            weight1 = weight1 * roman[1:]
-                            weight2 = weight2 * roman[1:]
-                            
-                            Rcounts, _ = np.histogram(R, bins=Rbins, weights=weight)
-                            R2counts, _ = np.histogram(R, bins=Rbins, weights=weight2)
-                            R1counts, _ = np.histogram(R, bins=Rbins, weights=weight1)
-                            
-                            rcounts, _ = np.histogram(r, bins=rbins, weights=weight)
-                            r2counts, _ = np.histogram(r, bins=rbins, weights=weight2)
-                            r1counts, _ = np.histogram(r, bins=rbins, weights=weight1)
-                            
-                            zcounts, _ = np.histogram(ztemp, bins=zbins, weights=weight)
-                            z2counts, _ = np.histogram(ztemp, bins=zbins, weights=weight2)
-                            z1counts, _ = np.histogram(ztemp, bins=zbins, weights=weight1)
-                            
-                            vcounts, _ = np.histogram(vtemp, bins=vbins, weights=weight)
-                            v2counts, _ = np.histogram(vtemp, bins=vbins, weights=weight2)
-                            v1counts, _ = np.histogram(vtemp, bins=vbins, weights=weight1)
-                            
-                            Tcounts, _ = np.histogram(Ttemp, bins=Tbins, weights=weight)
-                            T2counts, _ = np.histogram(Ttemp, bins=Tbins, weights=weight2)
-                            T1counts, _ = np.histogram(Ttemp, bins=Tbins, weights=weight1)
-                            
-                            accretor_weight = np.zeros(len(weight))
-                            accretor_weight[::] = weight[::]
-                            accretor_weight[stages1[1:]!=3] = 0
-                            tcounts, _ = np.histogram(ttemp, bins=tbins, weights=accretor_weight)
-                            t2counts, _ = np.histogram(ttemp, bins=tbins, weights=weight2)
-                            t1counts, _ = np.histogram(ttemp, bins=tbins, weights=weight1)
-                            
-                            f0counts, _ = np.histogram(f0[1:], bins=fbins, weights=weight)
-                            f1counts, _ = np.histogram(f1[1:], bins=fbins, weights=weight)
-                            c0counts, _ = np.histogram(c0[1:], bins=cbins, weights=weight)
-                            c1counts, _ = np.histogram(c1[1:], bins=cbins, weights=weight)
-                            
-                            df = pd.DataFrame({'R': Rcounts, 'R-2': R2counts, 'R-1': R1counts,
-                                               'r': rcounts, 'r-2': r2counts, 'r-1': r1counts,
-                                               'z': zcounts, 'z-2': z2counts, 'z-1': z1counts,
-                                               'v': vcounts, 'v-2': v2counts, 'v-1': v1counts,
-                                               'T': Tcounts, 'T-2': T2counts, 'T-1': T1counts,
-                                               't': tcounts, 't-2': t2counts, 't-1': t1counts,
-                                               'f0': f0counts, 'f1': f1counts,
-                                               'c0': c0counts, 'c1': c1counts})
-                            float_cols = df.select_dtypes(include=['float64']).columns
-                            df[float_cols] = df[float_cols].astype('float32')
-                            
-                            name = 'feather/{}_{}_{}_{}_{}_erosita_roman'.format(crank, galaxy_type, field,
-                                                            case, star_type)
-                            df0 = pd.read_feather(output_dir + name + '.feather')
-                            feather.write_feather(df+df0, output_dir + name + '.feather')
-                            # df = pd.DataFrame({'B': B1[c1>1e-4], #'t': t1[c1>1e-4], 'P': P1[c1>1e-4], 'stages': stages1[c1>1e-4],
-                            #                 'v': v1[c1>1e-4], #'Mdot': Mdot1[c1>1e-4], #'phase': ph1[c1>1e-4],
-                            #                 'x': x1[c1>1e-4], 'y': y1[c1>1e-4], 'z': z1[c1>1e-4],
-                            #                 'T': T[c1>1e-4], 'f0': f0[c1>1e-4], 'c0': c0[c1>1e-4],
-                            #                 'f1': f1[c1>1e-4], 'c1': c1[c1>1e-4], 
-                            #                 'weight': weight[c1[1:]>1e-4], 'roman': weight[c1[1:]>1e-4]*roman[c1>1e-4]})
-                            # reducing the size
-                            # df['stages'] = df['stages'].astype('int8')
-                            # df['phase'] = df['phase'].astype('int8')
+                        weight1 = np.zeros(len(weight))
+                        weight2 = np.zeros(len(weight))
+                        weight1[::] = weight[::]
+                        weight2[::] = weight[::]
+                        weight1[c1[1:]<1e-1] = 0
+                        weight2[c1[1:]<1e-2] = 0
+                        
+                        R = (x1[1:]**2+y1[1:]**2+z1[1:]**2)**0.5
+                        Rcounts, _ = np.histogram(R, bins=Rbins, weights=weight)
+                        R2counts, _ = np.histogram(R, bins=Rbins, weights=weight2)
+                        R1counts, _ = np.histogram(R, bins=Rbins, weights=weight1)
+                        
+                        r = (x1[1:]**2+(y1[1:]-R0)**2+z1[1:]**2)**0.5
+                        rcounts, _ = np.histogram(r, bins=rbins, weights=weight)
+                        r2counts, _ = np.histogram(r, bins=rbins, weights=weight2)
+                        r1counts, _ = np.histogram(r, bins=rbins, weights=weight1)
+                        
+                        ztemp = z1[1:]
+                        zcounts, _ = np.histogram(ztemp, bins=zbins, weights=weight)
+                        z2counts, _ = np.histogram(ztemp, bins=zbins, weights=weight2)
+                        z1counts, _ = np.histogram(ztemp, bins=zbins, weights=weight1)
+                        
+                        vtemp = v1[1:]
+                        vcounts, _ = np.histogram(vtemp, bins=vbins, weights=weight)
+                        v2counts, _ = np.histogram(vtemp, bins=vbins, weights=weight2)
+                        v1counts, _ = np.histogram(vtemp, bins=vbins, weights=weight1)
+                        
+                        Ttemp = T[1:]
+                        Tcounts, _ = np.histogram(Ttemp, bins=Tbins, weights=weight)
+                        T2counts, _ = np.histogram(Ttemp, bins=Tbins, weights=weight2)
+                        T1counts, _ = np.histogram(Ttemp, bins=Tbins, weights=weight1)
+                        
+                        Btemp = B1[1:]
+                        Bcounts, _ = np.histogram(Btemp, bins=Bbins, weights=weight)
+                        B2counts, _ = np.histogram(Btemp, bins=Bbins, weights=weight2)
+                        B1counts, _ = np.histogram(Btemp, bins=Bbins, weights=weight1)
+                        
+                        PA = P1[np.where(stages1==3)][0]
+                        Ptemp = np.zeros(len(P1[1:])) + PA
+                        weightP = np.zeros(len(weight)) + 1
+                        weightP = weightP / len(weightP)
+                        Pcounts, _ = np.histogram(Ptemp, bins=Pbins, weights=weightP)
+                        
+                        ttemp = t1[1:]
+                        accretor_weight = np.zeros(len(weight))
+                        accretor_weight[::] = weight[::]
+                        accretor_weight[stages1[1:]!=3] = 0
+                        tcounts, _ = np.histogram(ttemp, bins=tbins, weights=accretor_weight)
+                        t2counts, _ = np.histogram(ttemp, bins=tbins, weights=weight2)
+                        t1counts, _ = np.histogram(ttemp, bins=tbins, weights=weight1)
+                        
+                        Mtemp = Mdot1[1:]
+                        Mcounts, _ = np.histogram(Mtemp, bins=Mbins, weights=accretor_weight)
+                        M2counts, _ = np.histogram(Mtemp, bins=Mbins, weights=weight2)
+                        M1counts, _ = np.histogram(Mtemp, bins=Mbins, weights=weight1)
+                        
+                        """ Two-d histogram for the NS position """
+                        Number, _, _ = np.histogram2d(R, ztemp, bins=[R2bins, z2bins], weights=accretor_weight)
+                        """ Two-d histogram for M_dot """
+                        Mtemp_accretor = np.zeros(len(Mtemp))
+                        Mtemp_accretor[::] = Mtemp[::]
+                        Mtemp_accretor[stages1[1:]!=3] = 0
+                        Mdot_Rz, _, _ = np.histogram2d(R, ztemp, bins=[R2bins, z2bins], weights=Mtemp_accretor)
+                        
+                        f0counts, _ = np.histogram(f0[1:], bins=fbins, weights=weight)
+                        f1counts, _ = np.histogram(f1[1:], bins=fbins, weights=weight)
+                        c0counts, _ = np.histogram(c0[1:], bins=cbins, weights=weight)
+                        c1counts, _ = np.histogram(c1[1:], bins=cbins, weights=weight)
+                        
+                        df = pd.DataFrame({'R': Rcounts, 'R-2': R2counts, 'R-1': R1counts,
+                                           'r': rcounts, 'r-2': r2counts, 'r-1': r1counts,
+                                           'z': zcounts, 'z-2': z2counts, 'z-1': z1counts,
+                                           'v': vcounts, 'v-2': v2counts, 'v-1': v1counts,
+                                           'T': Tcounts, 'T-2': T2counts, 'T-1': T1counts,
+                                           't': tcounts, 't-2': t2counts, 't-1': t1counts,
+                                           'B': Bcounts, 'B-2': B2counts, 'B-1': B1counts,
+                                           'M': Mcounts, 'M-2': M2counts, 'M-1': M1counts,
+                                           'P': Pcounts,
+                                           'f0': f0counts, 'f1': f1counts,
+                                           'c0': c0counts, 'c1': c1counts})
+                        float_cols = df.select_dtypes(include=['float64']).columns
+                        df[float_cols] = df[float_cols].astype('float32')
+                        
+                        name = 'feather/{}_{}_{}_{}_{}_erosita'.format(crank, galaxy_type, field,
+                                                        case, star_type)
+                        df0 = pd.read_feather(output_dir + name + '.feather')
+                        feather.write_feather(df+df0, output_dir + name + '.feather')
+                        
+                        """ two-d files """
+                        name2d = 'npy/{}_{}_{}_{}_{}'.format(crank, galaxy_type, field,
+                                                        case, star_type)
+                        number_file = output_dir + name2d + '_Number_Rz.npy'
+                        mdot_file   = output_dir + name2d + '_Mdot_Rz.npy'
+                        
+                        
+                        Number_old = np.load(number_file)
+                        Number_new = Number_old + Number
+                        np.save(number_file, Number_new)
+                        
+                        Mdot_old = np.load(mdot_file)
+                        Mdot_new = Mdot_old + Mdot_Rz
+                        np.save(mdot_file, Mdot_new)
+                        
+                        # """ For Erosita + Roman """
+                        # roman = np.zeros(len(x1))
+                        # roman[1:][cond] = 1
+                        # weight = weight * roman[1:]
+                        # weight1 = weight1 * roman[1:]
+                        # weight2 = weight2 * roman[1:]
+                        
+                        # Rcounts, _ = np.histogram(R, bins=Rbins, weights=weight)
+                        # R2counts, _ = np.histogram(R, bins=Rbins, weights=weight2)
+                        # R1counts, _ = np.histogram(R, bins=Rbins, weights=weight1)
+                        
+                        # rcounts, _ = np.histogram(r, bins=rbins, weights=weight)
+                        # r2counts, _ = np.histogram(r, bins=rbins, weights=weight2)
+                        # r1counts, _ = np.histogram(r, bins=rbins, weights=weight1)
+                        
+                        # zcounts, _ = np.histogram(ztemp, bins=zbins, weights=weight)
+                        # z2counts, _ = np.histogram(ztemp, bins=zbins, weights=weight2)
+                        # z1counts, _ = np.histogram(ztemp, bins=zbins, weights=weight1)
+                        
+                        # vcounts, _ = np.histogram(vtemp, bins=vbins, weights=weight)
+                        # v2counts, _ = np.histogram(vtemp, bins=vbins, weights=weight2)
+                        # v1counts, _ = np.histogram(vtemp, bins=vbins, weights=weight1)
+                        
+                        # Tcounts, _ = np.histogram(Ttemp, bins=Tbins, weights=weight)
+                        # T2counts, _ = np.histogram(Ttemp, bins=Tbins, weights=weight2)
+                        # T1counts, _ = np.histogram(Ttemp, bins=Tbins, weights=weight1)
+                        
+                        # accretor_weight = np.zeros(len(weight))
+                        # accretor_weight[::] = weight[::]
+                        # accretor_weight[stages1[1:]!=3] = 0
+                        # tcounts, _ = np.histogram(ttemp, bins=tbins, weights=accretor_weight)
+                        # t2counts, _ = np.histogram(ttemp, bins=tbins, weights=weight2)
+                        # t1counts, _ = np.histogram(ttemp, bins=tbins, weights=weight1)
+                        
+                        # f0counts, _ = np.histogram(f0[1:], bins=fbins, weights=weight)
+                        # f1counts, _ = np.histogram(f1[1:], bins=fbins, weights=weight)
+                        # c0counts, _ = np.histogram(c0[1:], bins=cbins, weights=weight)
+                        # c1counts, _ = np.histogram(c1[1:], bins=cbins, weights=weight)
+                        
+                        # df = pd.DataFrame({'R': Rcounts, 'R-2': R2counts, 'R-1': R1counts,
+                        #                    'r': rcounts, 'r-2': r2counts, 'r-1': r1counts,
+                        #                    'z': zcounts, 'z-2': z2counts, 'z-1': z1counts,
+                        #                    'v': vcounts, 'v-2': v2counts, 'v-1': v1counts,
+                        #                    'T': Tcounts, 'T-2': T2counts, 'T-1': T1counts,
+                        #                    't': tcounts, 't-2': t2counts, 't-1': t1counts,
+                        #                    'f0': f0counts, 'f1': f1counts,
+                        #                    'c0': c0counts, 'c1': c1counts})
+                        # float_cols = df.select_dtypes(include=['float64']).columns
+                        # df[float_cols] = df[float_cols].astype('float32')
+                        
+                        # name = 'feather/{}_{}_{}_{}_{}_erosita_roman'.format(crank, galaxy_type, field,
+                        #                                 case, star_type)
+                        # df0 = pd.read_feather(output_dir + name + '.feather')
+                        # feather.write_feather(df+df0, output_dir + name + '.feather')
+                        
+                        """ Do not revive """
+                        # df = pd.DataFrame({'B': B1[c1>1e-4], #'t': t1[c1>1e-4], 'P': P1[c1>1e-4], 'stages': stages1[c1>1e-4],
+                        #                 'v': v1[c1>1e-4], #'Mdot': Mdot1[c1>1e-4], #'phase': ph1[c1>1e-4],
+                        #                 'x': x1[c1>1e-4], 'y': y1[c1>1e-4], 'z': z1[c1>1e-4],
+                        #                 'T': T[c1>1e-4], 'f0': f0[c1>1e-4], 'c0': c0[c1>1e-4],
+                        #                 'f1': f1[c1>1e-4], 'c1': c1[c1>1e-4], 
+                        #                 'weight': weight[c1[1:]>1e-4], 'roman': weight[c1[1:]>1e-4]*roman[c1>1e-4]})
+                        # reducing the size
+                        # df['stages'] = df['stages'].astype('int8')
+                        # df['phase'] = df['phase'].astype('int8')
                             
 
 """ HERE!!! """

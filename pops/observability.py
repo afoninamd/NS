@@ -168,7 +168,10 @@ def one_observability(t1, stages1, x1, y1, z1, B1, Mdot1,
     Mdot1[stages1!=3] = 0
     L_array = G * M_NS / R_NS * Mdot1
     r = kpc * ((x1-0)**2 + (y1-R0)**2 + (z1-0)**2)**0.5
-    F0_array = L_array / (4*np.pi*r**2)
+    
+    r_s = 2 * G * M_NS / c**2
+    g_00 = 1 - r_s/R_NS # for the time interval transformations
+    F0_array = L_array / (4*np.pi*r**2) * g_00**0.5
     
     idx = np.logical_and(stages1==3, F0_array>1e-15)  # temporary arrays corresponding to accretion
     lenga = len(t1[idx])

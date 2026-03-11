@@ -22,9 +22,8 @@ from astropy.cosmology import default_cosmology
 mw = gp.MilkyWayPotential()
 # help(gp.MilkyWayPotential) # type ?? after the function in the terminal to find out the details
 
-N = 10  # the number of tracks overall
-output_dir = 'result/realistic/'
-arr_size = 2000
+N = 10000  # the number of tracks overall
+arr_size = 1000
 
 """ Physical constants """
 c = const.c.cgs.value                  # speed of light in vacuum,   [cm / s]

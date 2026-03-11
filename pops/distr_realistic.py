@@ -15,8 +15,10 @@ import scipy as sp
 import matplotlib.pyplot as plt
 import pandas as pd
 from main.evolution import gett, evolution, getB, gettAttractor
-from main.constants import rgal, mw, N, output_dir
+from main.constants import rgal, mw, N
 # from time import time
+
+output_dir = 'result/realistic/'
 
 comm = MPI.COMM_WORLD
 crank = comm.Get_rank()
