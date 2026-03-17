@@ -76,7 +76,7 @@ vbins = np.linspace(0, 500, arr_size+1) * 1e5
 Tbins = 10**np.linspace(5, 9, arr_size+1) # better from 5 to 8
 tbins = np.linspace(0, galaxy_age, arr_size+1)
 Bbins = 10**np.linspace(8, 15, arr_size+1) # magnetic field values
-Mbins = 10**np.linspace(2, 10, arr_size+1)# accretion rates in g/s
+Mbins = 10**np.linspace(2, 15, arr_size+1)# accretion rates in g/s
 Pbins = 10**np.linspace(0, 8, arr_size+1) # spin periods for the P-A transition
 
 """ Bins for the 2d histogram """
@@ -185,7 +185,7 @@ def calculations(star_type):
     for galaxy_type in ['simple', 'two_phase']:
         for field in ['CF', 'ED']:
             for case in ['A', 'B', 'C', 'D']:
-                """ Two-d map for Mdot """
+                """ Creating two-d map for Mdot, B, v """
                 name2d = 'npy/{}_{}_{}_{}_{}'.format(crank, galaxy_type, field,
                                                 case, star_type)
                 nR = len(R2bins) - 1
@@ -193,13 +193,15 @@ def calculations(star_type):
                 shape = (nR, nz)
             
                 number_file = output_dir + name2d + '_Number_Rz.npy'
-                mdot_file   = output_dir + name2d + '_Mdot_Rz.npy'
-                
-                if not os.path.exists(number_file):
-                    np.save(number_file, np.zeros(shape, dtype='float32'))
-                
-                if not os.path.exists(mdot_file):
-                    np.save(mdot_file, np.zeros(shape, dtype='float32'))
+                for name_for_npy in ['_Number_Rz1', '_Number_Rz2',
+                                     '_Mdot_Rz', '_B_Rz', '_v_Rz']:
+                    mdot_file   = output_dir + name2d + name_for_npy + '.npy'
+                    
+                    if not os.path.exists(number_file):
+                        np.save(number_file, np.zeros(shape, dtype='float32'))
+                    
+                    if not os.path.exists(mdot_file):
+                        np.save(mdot_file, np.zeros(shape, dtype='float32'))
     
     """ Starting reading the files """
     for i in (range(start_idx, end_idx)): #tqdm
@@ -339,12 +341,25 @@ def calculations(star_type):
                         M1counts, _ = np.histogram(Mtemp, bins=Mbins, weights=weight1)
                         
                         """ Two-d histogram for the NS position """
-                        Number, _, _ = np.histogram2d(R, ztemp, bins=[R2bins, z2bins], weights=accretor_weight)
-                        """ Two-d histogram for M_dot """
+                        Number_Rz, _, _ = np.histogram2d(R, ztemp, bins=[R2bins, z2bins], weights=accretor_weight)
+                        Number_Rz1, _, _ = np.histogram2d(R, ztemp, bins=[R2bins, z2bins], weights=weight1)
+                        Number_Rz2, _, _ = np.histogram2d(R, ztemp, bins=[R2bins, z2bins], weights=weight2)
+                        """ Two-d histogram for M_dot, B, v """
                         Mtemp_accretor = np.zeros(len(Mtemp))
                         Mtemp_accretor[::] = Mtemp[::]
                         Mtemp_accretor[stages1[1:]!=3] = 0
                         Mdot_Rz, _, _ = np.histogram2d(R, ztemp, bins=[R2bins, z2bins], weights=Mtemp_accretor)
+                        
+                        Btemp_accretor = np.zeros(len(Btemp))
+                        Btemp_accretor[::] = Btemp[::]
+                        Btemp_accretor[stages1[1:]!=3] = 0
+                        B_Rz, _, _ = np.histogram2d(R, ztemp, bins=[R2bins, z2bins], weights=Btemp_accretor)
+                        
+                        vtemp_accretor = np.zeros(len(vtemp))
+                        vtemp_accretor[::] = vtemp[::]
+                        vtemp_accretor[stages1[1:]!=3] = 0
+                        v_Rz, _, _ = np.histogram2d(R, ztemp, bins=[R2bins, z2bins], weights=vtemp_accretor)
+                        
                         
                         f0counts, _ = np.histogram(f0[1:], bins=fbins, weights=weight)
                         f1counts, _ = np.histogram(f1[1:], bins=fbins, weights=weight)
@@ -370,22 +385,41 @@ def calculations(star_type):
                         df0 = pd.read_feather(output_dir + name + '.feather')
                         feather.write_feather(df+df0, output_dir + name + '.feather')
                         
+                        
                         """ two-d files """
                         name2d = 'npy/{}_{}_{}_{}_{}'.format(crank, galaxy_type, field,
                                                         case, star_type)
                         number_file = output_dir + name2d + '_Number_Rz.npy'
-                        mdot_file   = output_dir + name2d + '_Mdot_Rz.npy'
-                        
-                        
                         Number_old = np.load(number_file)
-                        Number_new = Number_old + Number
+                        Number_new = Number_old + Number_Rz
                         np.save(number_file, Number_new)
                         
+                        number_file = output_dir + name2d + '_Number_Rz1.npy'
+                        Number_old = np.load(number_file)
+                        Number_new = Number_old + Number_Rz1
+                        np.save(number_file, Number_new)
+                        
+                        number_file = output_dir + name2d + '_Number_Rz2.npy'
+                        Number_old = np.load(number_file)
+                        Number_new = Number_old + Number_Rz2
+                        np.save(number_file, Number_new)
+                        
+                        mdot_file = output_dir + name2d + '_Mdot_Rz.npy'
                         Mdot_old = np.load(mdot_file)
                         Mdot_new = Mdot_old + Mdot_Rz
                         np.save(mdot_file, Mdot_new)
                         
-                        # """ For Erosita + Roman """
+                        B_file = output_dir + name2d + '_B_Rz.npy'
+                        B_old = np.load(B_file)
+                        B_new = B_old + B_Rz
+                        np.save(B_file, B_new)
+                        
+                        v_file = output_dir + name2d + '_v_Rz.npy'
+                        v_old = np.load(v_file)
+                        v_new = v_old + v_Rz
+                        np.save(v_file, v_new)
+                        
+                        """ For Erosita + Roman """
                         # roman = np.zeros(len(x1))
                         # roman[1:][cond] = 1
                         # weight = weight * roman[1:]

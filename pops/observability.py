@@ -104,9 +104,9 @@ def column_density(pos) -> float:
 
 
 def plank(nu, T) -> np.array:
-    r_s = 2 * G * M_NS / c**2
-    g_00 = 1 - r_s/R_NS
-    nu = nu / (g_00)**0.5
+    # r_s = 2 * G * M_NS / c**2
+    # g_00 = 1 - r_s/R_NS
+    # nu = nu / (g_00)**0.5  # that is of no use, we have shifted the tempeature
     B = 2*h*nu**3/c**2 / (np.exp(h*nu/(k_B*T))-1)
     return B
 
@@ -193,7 +193,7 @@ def one_observability(t1, stages1, x1, y1, z1, B1, Mdot1,
     R_A = (mu**2 / (2 * Mdot2 * (2 * G * M_NS)**0.5))**(2/7)
     R_cap = R_NS * (R_NS/R_A)**0.5
     S_cap = 2 * np.pi * R_cap**2
-    Tt = (L_array / S_cap / sigma_B)**0.25
+    Tt = (L_array / g_00**0.5 / S_cap / sigma_B)**0.25 * g_00**0.5
     
     for i in range(lenga):
         N_H = column_density(np.array([x2[i], y2[i], z2[i]]))

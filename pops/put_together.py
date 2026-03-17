@@ -288,48 +288,49 @@ def create_npy():
         for field in ['CF', 'ED']:
             for case in ['A', 'B', 'C', 'D']:
                 
-                pattern = f"{output_dir}/npy/*{galaxy_type}_{field}_{case}*Number_Rz.npy"
+                for count_num in ['', '1', '2']:
+                    pattern = f"{output_dir}/npy/*{galaxy_type}_{field}_{case}*Number_Rz{count_num}.npy"
             
-                files = glob.glob(pattern)
+                    files = glob.glob(pattern)
+                    
+                    Number_sum = None
+                    
+                    for file in files:
+                        data = np.load(file)
+                        # print(data[data!=0])
+                        if Number_sum is None:
+                            Number_sum = np.zeros_like(data)
+                    
+                        Number_sum += data
+                    
+                    # print("Loaded", len(files), "cranks")
+                    
+                    Number_Rz = Number_sum
+                    
+                    name2d = '{}_{}_{}'.format(galaxy_type, field, case)
+                    number_file = output_dir + name2d + '_Number_Rz{}.npy'.format(count_num)
+                    
+                    np.save(number_file, Number_Rz)
                 
-                Number_sum = None
                 
-                for file in files:
-                    data = np.load(file)
-                    # print(data[data!=0])
-                    if Number_sum is None:
-                        Number_sum = np.zeros_like(data)
+                for var_name in ['_Mdot_Rz', '_v_Rz', '_B_Rz']:
+                    pattern = f"{output_dir}/npy/*{galaxy_type}_{field}_{case}*{var_name}.npy"
                 
-                    Number_sum += data
-                
-                # print("Loaded", len(files), "cranks")
-                
-                Number_Rz = Number_sum
-                
-                name2d = '{}_{}_{}'.format(galaxy_type, field, case)
-                number_file = output_dir + name2d + '_Number_Rz.npy'
-                mdot_file   = output_dir + name2d + '_Mdot_Rz.npy'
-                
-                np.save(number_file, Number_Rz)
-                
-                
-                pattern = f"{output_dir}/npy/*{galaxy_type}_{field}_{case}*Mdot_Rz.npy"
-            
-                files = glob.glob(pattern)
-                
-                Number_sum = None
-                
-                for file in files:
-                    data = np.load(file)
-                    if Number_sum is None:
-                        Number_sum = np.zeros_like(data)
-                
-                    Number_sum += data
-                
-                # print("Loaded", len(files), "cranks")
-                
-                Mdot_Rz = Number_sum
-                np.save(mdot_file, Mdot_Rz)
+                    files = glob.glob(pattern)
+                    
+                    Number_sum = None
+                    
+                    for file in files:
+                        data = np.load(file)
+                        if Number_sum is None:
+                            Number_sum = np.zeros_like(data)
+                    
+                        Number_sum += data
+                    
+                    # print("Loaded", len(files), "cranks")
+                    mdot_file   = output_dir + name2d + '{}.npy'.format(var_name)
+                    Mdot_Rz = Number_sum
+                    np.save(mdot_file, Mdot_Rz)
     
 
 print("create txt...")

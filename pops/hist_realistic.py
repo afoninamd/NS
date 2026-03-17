@@ -25,10 +25,11 @@ from main.constants import arr_size, galaxy_age, Gyr, Myr, year
 # full_path = '/home/afoninamd/Downloads/all_feathers/'
 # # full_path = '/home/afoninamd/Downloads/realistic2/'
 # path = '/home/afoninamd/Downloads/'
-full_path = '/home/afoninamd/Documents/NS/project/pops/result/realistic/'
+# full_path = '/home/afoninamd/Documents/NS/project/pops/result/realistic/'
+full_path = '/home/afoninamd/Documents/NS/project/pops/result/together/'
 # res_name = 'realistic/'
 # path = '/home/afoninamd/Documents/project/pops/result/realistic/'
-# res_name = ''
+res_name = ''
 Rbins = np.linspace(0, 20, arr_size+1) # from the GC
 rbins = np.linspace(0, 20, arr_size+1) # from the Sun better for 0 to 20
 zbins = np.linspace(0, 5, arr_size+1)
@@ -38,7 +39,7 @@ vbins = np.linspace(0, 500, arr_size+1) * 1e5
 Tbins = 10**np.linspace(5, 9, arr_size+1) # better from 5 to 8
 tbins = np.linspace(0, galaxy_age, arr_size+1)
 Bbins = 10**np.linspace(8, 15, arr_size+1) # magnetic field values
-Mbins = 10**np.linspace(2, 10, arr_size+1)# accretion rates in g/s
+Mbins = 10**np.linspace(2, 15, arr_size+1)# accretion rates in g/s old: from 2 to 10
 Pbins = 10**np.linspace(0, 8, arr_size+1) # spin periods for the P-A transition
 
 """ Bins for the 2d histogram """
@@ -80,10 +81,10 @@ def pdfs():
                 for add_string in ['', '_roman']:
                     file_name = '{}_{}_{}_{}_erosita{}'.format(galaxy_type, field,
                                                     case, 'pulsar', add_string)
-                    df = pd.read_feather(path + res_name + file_name + '.feather')
+                    df = pd.read_feather(full_path + file_name + '.feather')
                     file_name = '{}_{}_{}_{}_erosita{}'.format(galaxy_type, field,
                                                     case, 'magnetar', add_string)
-                    data = df+pd.read_feather(path + res_name + file_name + '.feather')
+                    data = df+pd.read_feather(full_path + file_name + '.feather')
                     
                     arr = cbins
                     data_c1 = np.array(data['c1'])
@@ -176,19 +177,17 @@ def pdfs1():
                 fig, ax = plt.subplots()
                 ax.vlines(x=1e-2, ymin=1e-2, ymax=1e7, color='black', alpha=0.5, ls='--')
                 
-                for add_string in ['', '_roman']:
+                for add_string in ['']:#, '_roman']:
                     file_name = '{}_{}_{}_erosita{}_std'.format(galaxy_type, field,
                                                     case, add_string)
                     
-                    print(path + res_name + file_name + '.feather')
-                    
-                    data_std = pd.read_feather(path + res_name + file_name + '.feather')
+                    data_std = pd.read_feather(full_path + file_name + '.feather')
                     data_c1_std = data_std['c1']
                     std_c1 = data_c1_std #np.cumsum(data_c1_std[::-1])[::-1]
                     
                     file_name = '{}_{}_{}_erosita{}_sum'.format(galaxy_type, field,
                                                     case, add_string)
-                    data = pd.read_feather(path + res_name + file_name + '.feather')
+                    data = pd.read_feather(full_path + file_name + '.feather')
                     
                     arr = cbins
                     data_c1 = np.array(data['c1'])
@@ -231,7 +230,7 @@ def pdfs1():
                 # print(len(std_c1[std_c1!=0]))
                 fig.savefig('counts/counts_{}_{}_{}.pdf'.format(galaxy_type, field, case), format='pdf')
 
-
+# pdfs1()
 
 def plotr():
     for galaxy_type in ['simple','two_phase']:#, 'two_phase']:
@@ -273,7 +272,7 @@ def plotr():
                     # std_2 = np.array(data['r-2'])
                     # std_1 = np.array(data['r-1'])
                     # std_0 = np.array(data['r'])
-                    print(data.columns)
+                    # print(data.columns)
                     std_2 = np.array(data['t-2'])
                     std_1 = np.array(data['t-1'])
                     std_0 = np.array(data['t'])
@@ -317,12 +316,12 @@ def rebin(nrebin=40): # new number of bins
                 case = cases[k]
                 file_name = '{}_{}_{}_erosita{}_std'.format(galaxy_type, field,
                                                 case, '')
-                data_std = pd.read_feather(path + res_name + file_name + '.feather')
+                data_std = pd.read_feather(full_path + file_name + '.feather')
                 data_c1_std = np.array(data_std['c1'])
                 std_c1 = data_c1_std #np.cumsum(data_c1_std[::-1])[::-1]
                 file_name = '{}_{}_{}_erosita{}_sum'.format(galaxy_type, field,
                                                 case, '')
-                data = pd.read_feather(path + res_name + file_name + '.feather')
+                data = pd.read_feather(full_path + file_name + '.feather')
                 
                 bins = cbins #arr[1:]
                 
@@ -358,8 +357,6 @@ def rebin(nrebin=40): # new number of bins
                     # print(norm*data_c1[19], bins[19])
                     ax.plot(bins[15:], norm*diagonal[15:], ls='--', color='grey')
                     
-             
-                print(bins[7])
                 
                 def format_num(n):
                     # numbers < 100 -> 1 significant digit
@@ -381,7 +378,7 @@ def rebin(nrebin=40): # new number of bins
                 ax.set_yscale('log')
                 ax.set_xscale('log')
                 ax.set_xlim([1e-3, 1e1])
-                ax.set_ylim([1e-1, 1e5])
+                ax.set_ylim([3e+0, 2e5])
             ax.legend(title=r'Propeller model')
         for line in lines:
             print(line + ' \\\\')
@@ -518,7 +515,8 @@ def plotrrebin(nrebin=arr_size,field='CF',  case='A', galaxy_type='simple'): # n
                 
                 print('{}_{}_{} T of maximum: {:.3e}'.format(galaxy_type, field, case, x_at_max))
                       
-            
+            if name == 'P' or name == 'M' or name == 'B':
+                ax.set_xscale('log')
             # if cts_num == '-2':
             #     print(case, field, x_99)
             
@@ -558,33 +556,48 @@ def plotrrebin(nrebin=arr_size,field='CF',  case='A', galaxy_type='simple'): # n
 
 def MdotMap(galaxy_type='two_phase', field='ED', case='B'):
     name2d = '{}_{}_{}'.format(galaxy_type, field, case)
+    output_dir = '/home/afoninamd/Documents/NS/project/pops/result/together/'
     number_file = output_dir + name2d + '_Number_Rz.npy'
     mdot_file   = output_dir + name2d + '_Mdot_Rz.npy'
     
-    Mdot_Rz = np.load(mdot_file)
-    Number_Rz = np.load(number_file)
+    Mdot_Rz = (np.load(mdot_file))
+    Number_Rz = (np.load(number_file))
     # print(Mdot_Rz[Mdot_Rz!=0])
     # print(Mdot_Rz[Number_Rz!=0])
     
-    plt.figure(figsize=(7,5))
+    plt.figure(figsize=(8,6))
     
-    plt.pcolormesh(R2bins, z2bins, Number_Rz.T, shading='auto') # Number_Rz also an interesting thing
-    plt.xlabel('R')
-    plt.ylabel('z')
-    plt.title('Mdot(R,z)')
+    counts = np.log10(Mdot_Rz.T/Number_Rz.T)
+    # plt.pcolormesh(R2bins, z2bins, Number_Rz.T, shading='auto') # Number_Rz also an interesting thing
+    cms = plt.pcolormesh(R2bins, z2bins, counts, shading='auto') # Number_Rz also an interesting thing
+    plt.xlabel('$R$, kpc')
+    plt.ylabel('$z$, kpc')
+    # plt.title('Mdot(R,z), [g/s]')
     
     cbar = plt.colorbar()
-    cbar.set_label('Mdot')
+    cbar.set_label('log$_{10}\dot{M}$, [g/s]')
+    
+    # smoothed_counts = sp.ndimage.gaussian_filter(counts, sigma=1)
+    # levels = np.linspace(8,15, 20)
+    # cnt = plt.contour((R2bins[1:]+R2bins[:1])/2, (z2bins[1:]+z2bins[:1])/2, smoothed_counts, levels, colors='white', rasterized=True, linewidths=0.5)
+    #                     # vmin=vmin, vmax=vmax)
+    # mpl.rcParams["text.usetex"] = False
+    # try:
+    #     plt.clabel(cnt, levels, fontsize=10, fmt='%r')
+    # except:
+    #     pass
     
     plt.tight_layout()
     plt.show()
 
+# MdotMap
 # MdotMap(galaxy_type='two_phase', field='ED', case='B')
-# MdotMap(galaxy_type='simple', field='CF', case='A')
+MdotMap(galaxy_type='simple', field='CF', case='A')
 
 """ HERE!!!! """
 # plotr()
-plotrrebin(case='A', field='CF', galaxy_type='simple')
+# plotrrebin(case='A', field='CF', galaxy_type='simple')
+# plotrrebin(case='B', field='ED', galaxy_type='two_phase')
 
 
 
@@ -730,7 +743,7 @@ def table_stages_old():
 
 
 def table_stages():
-    df = pd.read_csv('/home/afoninamd/Documents/NS/project/pops/result/all.txt', sep='\s+', header=None)
+    df = pd.read_csv(full_path+'all.txt', sep='\s+', header=None)
     df_p = df[:16]
     df_m = np.zeros((10,16))
     # df_pr = df[16:32]
