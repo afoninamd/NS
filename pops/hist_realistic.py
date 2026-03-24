@@ -26,7 +26,7 @@ from main.constants import arr_size, galaxy_age, Gyr, Myr, year
 # # full_path = '/home/afoninamd/Downloads/realistic2/'
 # path = '/home/afoninamd/Downloads/'
 # full_path = '/home/afoninamd/Documents/NS/project/pops/result/realistic/'
-full_path = '/home/afoninamd/Documents/NS/project/pops/result/together/'
+full_path = '/home/afoninamd/Documents/NS/project/pops/result/together2/'
 # res_name = 'realistic/'
 # path = '/home/afoninamd/Documents/project/pops/result/realistic/'
 res_name = ''
@@ -592,7 +592,7 @@ def MdotMap(galaxy_type='two_phase', field='ED', case='B'):
 
 # MdotMap
 # MdotMap(galaxy_type='two_phase', field='ED', case='B')
-MdotMap(galaxy_type='simple', field='CF', case='A')
+# MdotMap(galaxy_type='simple', field='CF', case='A')
 
 """ HERE!!!! """
 # plotr()

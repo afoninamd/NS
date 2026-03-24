@@ -17,12 +17,18 @@ import scipy as sp
 from scipy.optimize import root_scalar
 from main.model import Object
 from main.evolution import gett, getB, evolution
-from main.constants import m_p, G, M_NS, R_NS, AU, R_sun, k_B, M_sun, year, Myr, Gyr
+from main.constants import m_p, G, M_NS, R_NS, AU, R_sun, k_B, M_sun, year, Myr, Gyr, day
 from time import time
 
 from matplotlib.colors import LogNorm
 import matplotlib.gridspec as gridspec
 
+M_dot_sun= 1.4e-14*M_sun/year
+Omega_sun = 2 * np.pi / 27 / day
+# print(Omega_sun)
+Omega_sun = 2.67e-6 # Carrington rotation
+Omega_initial = Omega_sun #* (100 * Myr/4.6/Gyr)**(-0.5) # 4 days Johnstone 2015 II Omega ~ t^-0.5 if t > 100 Myr
+# print(2*np.pi/Omega_sun/15/day)# print(2*np.pi/Omega_initial / day)
 
 """ Wind profiles v(r) """
 
@@ -38,7 +44,13 @@ def wind_velocity(r):
     r1 = 4.5 * R_sun
     r_a = 15.2 * R_sun
     beta = 0.5
-    return v_a * (1 - np.exp(-(r-r1)/r_a))**beta
+    v = v_a * (1 - np.exp(-(r-r1)/r_a))**beta
+    v[np.isnan(v)] = 0
+    # print(v)
+    return v
+
+r = np.linspace(0, 1)*AU
+plt.plot(r, wind_velocity(r))
 
 
 def wind_velocity_beta_law(r):
@@ -167,7 +179,27 @@ def plot_M_dot_profile():
     plt.show()
 
 
-def wind_parameters(t, pspin):
+def Omega_saturation(Mstar):
+    """ Saturated regime (Johnstone 2015 II) """
+    Omega_sun_sat = 15 * Omega_sun
+    Omega_sat = Omega_sun_sat * (Mstar/M_sun)**2.3
+    return Omega_sat
+
+
+def wind_parameters(Mstar, Rstar, Omega):
+    """ 
+    Omega is the spin of the sun-like star
+    """
+    Omega_sat = Omega_saturation(Mstar)
+    Omega[Omega>Omega_sat] = Omega_sat
+    M_dot_w = M_dot_sun * (Rstar/R_sun)**2 * (Omega/Omega_sun)**1.33 * (Mstar/M_sun)**(-3.36)
+    
+    return M_dot_w
+
+
+""" Outdated wind parameters functions """
+
+def wind_parameters_isolated_sun(t):
     """
     The solar wind parameters for a given t 
     pspin: the spin period of the stars cgs
@@ -199,7 +231,153 @@ def wind_parameters(t, pspin):
         T0 = T_t(t)
         T0[t<1.0*Gyr] = T_t(1.0*Gyr)
     
-    
-    
-    
     return T0, Mdot
+
+
+def wind_parameters_binary_only(Mstar, Rstar, Pspin):
+    """
+    Mstar in g
+    Radius is in cm
+    Pspin in seconds
+    """
+    Omega = 2 * np.pi / Pspin
+    Omega_sat = Omega_saturation(Mstar)
+    Omega[Omega>Omega_sat] = Omega_sat
+    """ Unsaturated regime (Johnstone 2015 II) """
+    M_dot_w = M_dot_sun * (Rstar/R_sun)**2 * (Omega/Omega_sun)**1.33 * (Mstar/M_sun)**(-3.36)
+    
+    return M_dot_w
+
+
+def wind_parameters_old(t, Mstar, Rstar, omega_spin_binary, t_isolated, omega_spin_isolated): #omega_spin_isolated, 
+    """ Johnstone II """
+    """ Omega ~ t^-0.566 from the observations of the Sun """
+    t0 = 100*Myr
+    a = 0.566
+    omega_0 = Omega_initial # the omega of an isolated star at t = 0 and t = t0
+    
+    omega_isolated_johnstone = omega_0 *(t/t0)**(-a)
+    omega_isolated_johnstone[t<t0] = omega_0
+    
+    t_isolated[-1] = t[-1]
+    omega_isolated_bse = np.array(sp.interpolate.interp1d(t_isolated, omega_spin_isolated)(t))
+    omega_isolated_bse = omega_isolated_bse / omega_isolated_bse[0] * omega_0
+    # d_omega_isolated = np.zeros(len(t))
+    # d_omega_isolated[t>t0] = -omega_0 * a * (t[t>t0]/t0)**(-a-1)/t0
+    
+    """ d_omega for the same star, but in a binary """
+    omega_binary = omega_spin_binary / omega_spin_binary[0] * omega_0
+    # d_omega_binary = np.gradient(omega_spin_binary, t)
+    
+    """ Combined """
+    omega_isolated = omega_isolated_johnstone
+    omega_binary = - omega_binary + omega_isolated_bse
+    # d_omega_spin = np.zeros(len(t))
+    # d_omega_spin[t>t0] = d_omega_isolated[t>t0] + d_omega_binary[t>t0]
+    
+    # """ creating an array of the final omega """
+    # omega = np.zeros(len(t))
+    # omega[t>t0] = omega_0 + sp.integrate.cumulative_trapezoid(d_omega_spin[t>t0], t[t>t0], initial=0)
+    # first_val = omega[omega!=0][0]
+    # omega[omega==0] = first_val
+    # omega[omega<0] = 0
+    
+    omega = omega_isolated + omega_binary
+    
+    """ Omega function has a maximum """
+    Omega_sat = Omega_saturation(Mstar)
+    omega[omega>Omega_sat] = Omega_sat
+    
+    Rstar0 = Rstar[0]
+    R_sun_0 = 0.8882494502975121 * R_sun
+    Mdot = M_dot_sun * np.abs(omega/Omega_sun)**(4/3) * (Mstar/M_sun)**(-3.36) * (Rstar0/R_sun_0)**(2)
+    
+    # plt.plot(omega)
+    # plt.plot(t, omega_binary, ls='--')
+    # plt.plot(t, omega_isolated, ls='--')
+    # plt.plot(t, d_omega_spin, ls='--')
+    # print(d_omega_binary)
+    return omega, Mdot
+
+
+def wind_parameters_try1(t, Mstar, Rstar, omega_spin_binary, omega_spin_isolated_0): #omega_spin_isolated, 
+    """ Johnstone II """
+    """ Omega ~ t^-0.566 from the observations of the Sun """
+    t0 = 100*Myr
+    a = 0.566
+    omega_0 = omega_spin_isolated_0 # the omega of an isolated star at t0
+    
+    d_omega_isolated = np.zeros(len(t))
+    d_omega_isolated[t>t0] = -omega_0 * a * (t[t>t0]/t0)**(-a-1)/t0
+    
+    """ d_omega for the same star, but in a binary """
+    d_omega_binary = np.gradient(omega_spin_binary, t)
+    
+    """ Combined """
+    d_omega_spin = np.zeros(len(t))
+    d_omega_spin[t>t0] = d_omega_isolated[t>t0] + d_omega_binary[t>t0]
+    
+    """ creating an array of the final omega """
+    omega = np.zeros(len(t))
+    omega[t>t0] = omega_0 + sp.integrate.cumulative_trapezoid(d_omega_spin[t>t0], t[t>t0], initial=0)
+    first_val = omega[omega!=0][0]
+    omega[omega==0] = first_val
+    # omega[omega<0] = 0
+    
+    """ Omega function has a maximum """
+    Omega_sat = Omega_saturation(Mstar)
+    omega[omega>Omega_sat] = Omega_sat
+    
+    Rstar0 = Rstar[0]
+    R_sun_0 = 0.8882494502975121 * R_sun
+    Mdot = M_dot_sun * np.abs(omega/Omega_sun)**(4/3) * (Mstar/M_sun)**(-3.36) * (Rstar0/R_sun_0)**(2)
+    
+    # plt.plot(omega)
+    # plt.plot(t, d_omega_binary, ls='--')
+    # plt.plot(t, d_omega_isolated, ls='--')
+    # plt.plot(t, d_omega_spin, ls='--')
+    # print(d_omega_binary)
+    return omega, Mdot
+
+def wind_parameters_outdated(t, Mstar, Rstar, Pspin, Pspin0):
+    """
+    Includes the evolution of an isolated star and a star in a binary
+    Pspin0 - evolution, when the NS is really far away a = 1000 AU, e = 0
+    """
+    # M_dot_binary = wind_parameters_binary_only(Mstar, Rstar, Pspin)
+    Rstar0 = Rstar[0]
+    R_sun_0 = 0.8882494502975121 * R_sun
+    """if it is alone, it evolves like the Sun but with a different radius and mass"""
+    _, M_dot_isolated = wind_parameters_isolated_sun(t)
+    M_dot_isolated = M_dot_isolated * (Rstar0/R_sun_0)**2 * (Mstar/M_sun)**(-3.36)
+    M_dot = M_dot_isolated
+    # print(M_dot[0])
+    # print(Rstar[0], Pspin[0])
+    
+    Omega_evo_isolated_mult = (t/4.6/Gyr)**(-0.75) * (Mstar/M_sun)**(3.36) * (Rstar/R_sun)**(-2)
+    Omega_evo_isolated_mult[t<100*Myr] = (100*Myr/4.6/Gyr)**(-0.75) * (Mstar/M_sun)**(3.36) * (Rstar[t<100*Myr]/R_sun)**(-2)
+    Omega_evo_isolated = Omega_sun * Omega_evo_isolated_mult**(3/4)
+    # Omega_evo_isolated[0] = Omega_evo_isolated[1]
+    Omega_evo_isolated = Omega_evo_isolated / Omega_evo_isolated[0] * 2 * np.pi / Pspin[0] #Omega_initial # normalization
+    
+    """
+    If the star spins up, then the Omega difference starts to be important
+    This mode starts with the last true "isolated" value of M_dot
+    taking into account further evolution of the Radius
+    """
+    dP = np.diff(Pspin)
+    print(dP)
+    idxs = np.where(dP < 0)[0] # starts to spin up
+    if len(idxs) > 0:
+        idx = idxs[0]
+        print("idx pf the dPspin > 0 =", idx)
+        M_dot[idx:] = M_dot_isolated[idx] * (Rstar[idx:]/Rstar[idx])**2 * (2 * np.pi / Pspin[idx:]/Omega_sun)**1.33
+    
+    # M_dot = M_dot_isolated * (2 * np.pi / Pspin / Omega_evo_isolated)**1.33
+    """ If the Saturation takes place, then it should be topped by it """
+    Omega_sat = Omega_saturation(Mstar)
+    M_dot_sat = M_dot_sun * (Rstar/R_sun)**2 * (Omega_sat/Omega_sun)**1.33 * (Mstar/M_sun)**(-3.36)
+
+    M_dot[M_dot>M_dot_sat] = M_dot_sat[M_dot>M_dot_sat]
+
+    return M_dot

@@ -375,11 +375,11 @@ class Object():
         
         # K_su = self.M_dot(t) * (self.GM * self.R_A(t))**0.5
         K_su = self.M_dot(t) * self.eta * self.Omega(t) * self.R_G(t)**2
-        if K_su > self.M_dot(t) * (self.GM * R_m)**0.5:
-            print('disc')
-            print(np.log10(self.B(t)))
-            print(K_su / self.M_dot(t))
-            print((self.GM * R_m)**0.5)
+        # if K_su > self.M_dot(t) * (self.GM * R_m)**0.5:
+        #     print('disc')
+        #     print(np.log10(self.B(t)))
+        #     print(K_su / self.M_dot(t))
+        #     print((self.GM * R_m)**0.5)
         # if K_su > self.M_dot(t) * (self.GM * R_m)**0.5:
         #     print('DISK')
         R_m = max(R_m, self.R_NS)

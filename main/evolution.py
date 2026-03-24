@@ -108,6 +108,7 @@ def find_stage(t_cur: float, P_cur: float, NS: Object,
     To find the first stage, assume that the previous stage is ejector,
     i.e. previous_stage = 1,
     """
+    stage = None
     if P_cur < NS.P_PE(t_cur):
        stage = 1 # Ejector for sure
     elif P_cur > NS.P_PA(t_cur):
@@ -125,6 +126,11 @@ def find_stage(t_cur: float, P_cur: float, NS: Object,
         else:
             stage = 1 # Ejector otherwise
     """ Georotator """
+    if stage == None:
+        print("stage = None in main.evolution first_stage", t_cur, P_cur, previous_stage)
+        print(f"{P_cur} < {NS.P_PE(t_cur)}")
+        print(f"Omega = {NS.Omega(t_cur)}")
+        print(f"Mdot = {NS.M_dot(t_cur)}")
     if stage == 3:
         if NS.R_A(t_cur) > NS.R_G(t_cur): # if magnetosphere is large
             stage = 4 # Georotator
@@ -247,7 +253,7 @@ def increase_time_resolution(t, P, stages):
 
     for i in range(1, len(t)):
         P_step = abs(P[i] - P[i-1]) / P[i-1]
-        if P_step > 2:  # threshold for jump
+        if P_step > 2 or P[i] < 0:  # threshold for jump
             num_t = max(1, int(P_step))
             # Insert points between t[i-1] and t[i]
             inserted_points = np.linspace(t[i-1], t[i], 2 * num_t + 1,
