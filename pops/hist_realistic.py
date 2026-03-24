@@ -21,6 +21,7 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from main.constants import arr_size, galaxy_age, Gyr, Myr, year
+from main.evolution import j_if_disc
 # full_path = '/home/afoninamd/Downloads/test_new_10k/'
 # full_path = '/home/afoninamd/Downloads/all_feathers/'
 # # full_path = '/home/afoninamd/Downloads/realistic2/'
@@ -432,7 +433,7 @@ def plotrrebin(nrebin=arr_size,field='CF',  case='A', galaxy_type='simple'): # n
                                         case, '')
         data = pd.read_feather(full_path + file_name + '.feather')
         
-        print(data.columns)
+        # print(data.columns)
         # x_arr = (bins[1:] + bins[:1]) / 2
         
         
@@ -485,8 +486,10 @@ def plotrrebin(nrebin=arr_size,field='CF',  case='A', galaxy_type='simple'): # n
                 print(x_arr[0]/np.sum(x_arr))
             
             """ The 99% line from the start """
-            if False: # name == 'z' and cts_num == '-2':
-                for value_a in [0.5, 0.99]:
+            if name == 'r' and cts_num == '-2':
+                x_sigma_array = np.zeros(2)
+                for ij in range(2):
+                    value_a  =[0.5, 0.99][ij]
                     y = norm * data_0
                     x = x_arr
                     cum_int = sp.integrate.cumulative_trapezoid(y, x, initial=0)
@@ -495,8 +498,21 @@ def plotrrebin(nrebin=arr_size,field='CF',  case='A', galaxy_type='simple'): # n
                     idx_99 = np.searchsorted(cum_int, threshold_value)
                     x_99 = x[idx_99]
                     ax.axvline(x_99, linestyle=':', label='99% integral', color=color)
+                    x_sigma_array[ij] = x_99
                     print('{}_{}_{} z for {}: {:.3f}'.format(galaxy_type, field, case, value_a, x_99))
-            
+                return x_sigma_array[0], x_sigma_array[1]
+                # """ 3_sigma-interval """
+                # num_of_sigma = 1
+                # x = x_arr
+                # pdf = y / np.trapz(y, x)
+                # mu = np.trapz(x * pdf, x)
+                # sigma = np.sqrt(np.trapz((x - mu)**2 * pdf, x))
+                # low_3s = mu - num_of_sigma * sigma
+                # high_3s = mu + num_of_sigma * sigma
+                # plt.axvline(low_3s,  color=color, linestyle='--', label='μ − {}σ'.format(num_of_sigma))
+                # plt.axvline(high_3s, color=color, linestyle='--', label='μ + {}σ'.format(num_of_sigma))
+                
+                
             if name == 't' and cts_num == '':
                 y = norm * data_0
                 x = x_arr
@@ -508,28 +524,19 @@ def plotrrebin(nrebin=arr_size,field='CF',  case='A', galaxy_type='simple'): # n
                 cum_int_last_Gyr = sp.integrate.cumulative_trapezoid(y1, x1, initial=0) 
                 print('{}_{}_{}: {:.0f} %'.format(galaxy_type, field, case, 100*cum_int_last_Gyr[-1]/total))
                 
-            if False: #name == 'T' and cts_num == '-2':
-                imax = np.argmax(y)
-                x_centers = 0.5 * (x_arr[:-1] + x_arr[1:])
-                x_at_max = x_centers[imax]
+            # if name == 'T' and cts_num == '-2':
+            #     imax = np.argmax(y)
+            #     x_centers = 0.5 * (x_arr[:-1] + x_arr[1:])
+            #     x_at_max = x_centers[imax]
                 
-                print('{}_{}_{} T of maximum: {:.3e}'.format(galaxy_type, field, case, x_at_max))
+                # print('{}_{}_{} T of maximum: {:.3e}'.format(galaxy_type, field, case, x_at_max))
+                # return x_at_max, 0
                       
             if name == 'P' or name == 'M' or name == 'B':
                 ax.set_xscale('log')
             # if cts_num == '-2':
             #     print(case, field, x_99)
             
-            """ 3_sigma-interval """
-            # num_of_sigma = 1
-            # x = x_arr
-            # pdf = y / np.trapz(y, x)
-            # mu = np.trapz(x * pdf, x)
-            # sigma = np.sqrt(np.trapz((x - mu)**2 * pdf, x))
-            # low_3s = mu - num_of_sigma * sigma
-            # high_3s = mu + num_of_sigma * sigma
-            # plt.axvline(low_3s,  color=color, linestyle='--', label='μ − {}σ'.format(num_of_sigma))
-            # plt.axvline(high_3s, color=color, linestyle='--', label='μ + {}σ'.format(num_of_sigma))
             
         
             ax.fill_between(x_arr, y1=norm*(data_0-std_0), y2=norm*(data_0), color=color, alpha=0.1)
@@ -556,18 +563,36 @@ def plotrrebin(nrebin=arr_size,field='CF',  case='A', galaxy_type='simple'): # n
 
 def MdotMap(galaxy_type='two_phase', field='ED', case='B'):
     name2d = '{}_{}_{}'.format(galaxy_type, field, case)
-    output_dir = '/home/afoninamd/Documents/NS/project/pops/result/together/'
+    output_dir = '/home/afoninamd/Documents/NS/project/pops/result/together2/'
     number_file = output_dir + name2d + '_Number_Rz.npy'
     mdot_file   = output_dir + name2d + '_Mdot_Rz.npy'
+    B_file = output_dir + name2d + '_B_Rz.npy'
+    v_file = output_dir + name2d + '_v_Rz.npy'
     
-    Mdot_Rz = (np.load(mdot_file))
     Number_Rz = (np.load(number_file))
+    norm = np.sum(Number_Rz)
+    print(norm)
+    
+    Mdot_Rz = (np.load(mdot_file)) / norm #Number_Rz
+    B_Rz = (np.load(B_file)) / norm #Number_Rz
+    v_Rz = (np.load(v_file)) / norm #Number_Rz
+    
+    
+    # print(np.log10(B_Rz[0,0]), v_Rz[99,0]/1e5, np.log10(Mdot_Rz[0,0]))
     # print(Mdot_Rz[Mdot_Rz!=0])
     # print(Mdot_Rz[Number_Rz!=0])
     
     plt.figure(figsize=(8,6))
     
-    counts = np.log10(Mdot_Rz.T/Number_Rz.T)
+    J_Rz = j_if_disc(B_Rz, v_Rz, Mdot_Rz)
+    J_Rz[J_Rz<1] = np.nan
+    counts = np.log10(J_Rz.T)
+    
+    J_1d = J_Rz.reshape(-1)
+    print(len(J_1d[J_1d>1]))
+    
+    # counts = v_Rz.T / 1e5
+    # counts = np.log10(Mdot_Rz.T)
     # plt.pcolormesh(R2bins, z2bins, Number_Rz.T, shading='auto') # Number_Rz also an interesting thing
     cms = plt.pcolormesh(R2bins, z2bins, counts, shading='auto') # Number_Rz also an interesting thing
     plt.xlabel('$R$, kpc')
@@ -575,7 +600,8 @@ def MdotMap(galaxy_type='two_phase', field='ED', case='B'):
     # plt.title('Mdot(R,z), [g/s]')
     
     cbar = plt.colorbar()
-    cbar.set_label('log$_{10}\dot{M}$, [g/s]')
+    # cbar.set_label('log$_{10}\dot{M}$, [g/s]')
+    cbar.set_label('k (k > 1 -> disc)')
     
     # smoothed_counts = sp.ndimage.gaussian_filter(counts, sigma=1)
     # levels = np.linspace(8,15, 20)
@@ -591,13 +617,39 @@ def MdotMap(galaxy_type='two_phase', field='ED', case='B'):
     plt.show()
 
 # MdotMap
-# MdotMap(galaxy_type='two_phase', field='ED', case='B')
+MdotMap(galaxy_type='two_phase', field='ED', case='B')
 # MdotMap(galaxy_type='simple', field='CF', case='A')
 
 """ HERE!!!! """
-# plotr()
-# plotrrebin(case='A', field='CF', galaxy_type='simple')
 # plotrrebin(case='B', field='ED', galaxy_type='two_phase')
+# plotr()
+# i = 0
+# x1 = np.zeros(6)
+# x2 = np.zeros(6)
+# for ic in[0,1,2]:
+#     case = ['A', 'B', 'C'][ic]
+#     for ifield in [0]:
+#         field = ['CF'][ifield]
+#         for igal in [0,1]:
+#             galaxy_type = ['simple', 'two_phase'][igal]
+#             x1[i], x2[i] = plotrrebin(case=case, field=field, galaxy_type=galaxy_type)
+#             i += 1
+# print(np.mean(x1), np.mean(x2))
+
+# i = 0
+# x1 = np.zeros(6)
+# x2 = np.zeros(6)
+# for ic in[0,1,2]:
+#     case = ['A', 'B', 'C'][ic]
+#     for ifield in [0]:
+#         field = ['ED'][ifield]
+#         for igal in [0,1]:
+#             galaxy_type = ['simple', 'two_phase'][igal]
+#             x1[i], x2[i] = plotrrebin(case=case, field=field, galaxy_type=galaxy_type)
+#             i += 1
+# print(np.mean(x1), np.mean(x2))
+
+
 
 
 

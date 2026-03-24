@@ -49,8 +49,8 @@ def wind_velocity(r):
     # print(v)
     return v
 
-r = np.linspace(0, 1)*AU
-plt.plot(r, wind_velocity(r))
+# r = np.linspace(0, 1)*AU
+# plt.plot(r, wind_velocity(r))
 
 
 def wind_velocity_beta_law(r):
@@ -120,7 +120,7 @@ def plot_wind_velocity_profiles():
     R_star = R_sun
     T_cor  = 1.5e6  # solar coronal temperature
     
-    r = np.linspace(1.01*R_star, 1*AU, 500)
+    r = np.linspace(1.01*R_star, 0.2*AU, 500)
     
     v, cs, rs = parker_velocity_profile(M_star, R_star, T_cor, r)
     
@@ -131,7 +131,14 @@ def plot_wind_velocity_profiles():
     
     
     plt.plot(r/AU, (v**2+orbital_velocity(r)**2)**0.5/1e5, label="Parker solar wind model", lw=3)
-    plt.plot(r/AU, (wind_velocity(r)**2+orbital_velocity(r)**2)**0.5/1e5, label="Sheeley et al. (1997)", lw=3)
+    # plt.plot(r/AU, (wind_velocity(r)**2+orbital_velocity(r)**2)**0.5/1e5, label="Sheeley et al. (1997) and orbital v", lw=3)
+    
+    ecc = 0.5
+    orb_v = orbital_velocity(1*AU*10**(-0.25))
+    per_velocity = orb_v*(1+ecc/(1-ecc))**0.5
+    
+    
+    plt.plot(r/AU, (wind_velocity(r)**2+per_velocity**2)**0.5/1e5, label="Sheeley et al. (1997) and periastron v", lw=3)
     plt.axvline(R_sun/AU, ls=':', color='k')
     plt.legend()
     plt.xlabel("r (AU)")
@@ -140,8 +147,9 @@ def plot_wind_velocity_profiles():
     plt.grid()
     plt.show()
 
-# print(G*2.4*M_sun/400e5**2/R_sun)
-
+# print(G*1.4*M_sun/270e5**2/R_sun)
+# print(10**(-0.263))
+# print(12*R_sun/AU)
 # plot_wind_velocity_profiles()
 
 def plot_M_dot_profile():

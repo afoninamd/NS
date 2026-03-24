@@ -112,13 +112,13 @@ def evolution_binary(t: np.array, P0:float, B: np.array,
         
     for i in (range(1, leng)):
         
-        """ Define the stage and find dP """
+        """ Define the stage and find dP """ #!!!
         prev_stage = stages[i-1]
-
+        
         if prev_stage == 3:
             """ Starting with the first accretor point the stage = accretion """
-            # for j in range(i, leng):
-            #     P[j] = NS_per.P_eq(t[j-1])
+            for j in range(i, leng):
+                P[j] = NS_per.P_eq(t[j-1])
             stages[i:] = 3
             break
 
@@ -352,7 +352,19 @@ def one_binary_evolution(P0, B0, case, field, Mstar, ecc0, Porb0, plot):
     return t, P, stages
 
 # time1 = time()
-# one_binary_evolution(P0=0.01, B0=1e12, case='A', field='CF', Mstar=1*M_sun, ecc0=0.8, Porb0=20*day, plot=0)
+def axis_to_Porb(a, Mstar):
+    return (a/AU)**1.5 * (1/(1.4 + Mstar/M_sun))**0.5 * year
+
+""" HERE """ #!!!
+Mstar = 1*M_sun
+a = AU * 10**(-0.75) #(-0.75)
+for a in[AU * 10**(-0.75), AU * 10**(-1)]:
+    one_binary_evolution(P0=0.01, B0=1e12, case='A', field='CF', Mstar=1*M_sun, ecc0=0.5, Porb0=axis_to_Porb(a, Mstar), plot=1)
+
+# print(10**(-0.25)*AU/R_sun * (0.1))
+# for a in[AU * 10**(-0.25), AU * 10**(-0.3)]:
+#     one_binary_evolution(P0=0.01, B0=1e12, case='A', field='CF', Mstar=1*M_sun, ecc0=0.9, Porb0=axis_to_Porb(a, Mstar), plot=1)
+
 # print(time()-time1)
 # string = 'Рентгеновские наблюдения кандидата в аккрецирующие нейтронные звезды в широкой двойной системе'
 # print(string.upper())
