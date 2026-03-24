@@ -17,7 +17,7 @@ import pyarrow.feather as feather
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from pops.track import get_coordinates_velocities, evolution_galaxy_iterations
 from pops.observability import flux_to_counts_constants, one_observability
-from main.evolution import gett, star_formation_history
+from main.evolution import gett, star_formation_history, j_if_disc
 from main.constants import galaxy_age, N, R0, arr_size, Gyr
 
 output_dir = 'result/realistic/'
@@ -194,7 +194,7 @@ def calculations(star_type):
             
                 number_file = output_dir + name2d + '_Number_Rz.npy'
                 for name_for_npy in ['_Number_Rz1', '_Number_Rz2',
-                                     '_Mdot_Rz', '_B_Rz', '_v_Rz']:
+                                     '_Mdot_Rz', '_B_Rz', '_v_Rz', '_j_Rz']:
                     mdot_file   = output_dir + name2d + name_for_npy + '.npy'
                     
                     if not os.path.exists(number_file):
@@ -346,20 +346,27 @@ def calculations(star_type):
                         Number_Rz2, _, _ = np.histogram2d(R, ztemp, bins=[R2bins, z2bins], weights=weight2)
                         """ Two-d histogram for M_dot, B, v """
                         Mtemp_accretor = np.zeros(len(Mtemp))
-                        Mtemp_accretor[::] = Mtemp[::]
+                        Mtemp_accretor[::] = Mtemp[::] * accretor_weight
                         Mtemp_accretor[stages1[1:]!=3] = 0
                         Mdot_Rz, _, _ = np.histogram2d(R, ztemp, bins=[R2bins, z2bins], weights=Mtemp_accretor)
                         
                         Btemp_accretor = np.zeros(len(Btemp))
-                        Btemp_accretor[::] = Btemp[::]
+                        Btemp_accretor[::] = Btemp[::] * accretor_weight
                         Btemp_accretor[stages1[1:]!=3] = 0
                         B_Rz, _, _ = np.histogram2d(R, ztemp, bins=[R2bins, z2bins], weights=Btemp_accretor)
                         
                         vtemp_accretor = np.zeros(len(vtemp))
-                        vtemp_accretor[::] = vtemp[::]
+                        vtemp_accretor[::] = vtemp[::] * accretor_weight
                         vtemp_accretor[stages1[1:]!=3] = 0
                         v_Rz, _, _ = np.histogram2d(R, ztemp, bins=[R2bins, z2bins], weights=vtemp_accretor)
                         
+                        jtemp = j_if_disc(Btemp, vtemp, Mtemp)
+                        jtemp[jtemp<1] = 0
+                        jtemp[jtemp>1] = 1
+                        jtemp_accretor = np.zeros(len(jtemp))
+                        jtemp_accretor[::] = jtemp[::] * accretor_weight
+                        jtemp_accretor[stages1[1:]!=3] = 0
+                        j_Rz, _, _ = np.histogram2d(R, ztemp, bins=[R2bins, z2bins], weights=jtemp_accretor)
                         
                         f0counts, _ = np.histogram(f0[1:], bins=fbins, weights=weight)
                         f1counts, _ = np.histogram(f1[1:], bins=fbins, weights=weight)
@@ -418,6 +425,12 @@ def calculations(star_type):
                         v_old = np.load(v_file)
                         v_new = v_old + v_Rz
                         np.save(v_file, v_new)
+                        
+                        j_file = output_dir + name2d + '_j_Rz.npy'
+                        j_old = np.load(j_file)
+                        j_new = j_old + j_Rz
+                        np.saje(j_file, j_new)
+                        
                         
                         """ For Erosita + Roman """
                         # roman = np.zeros(len(x1))
