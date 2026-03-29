@@ -313,7 +313,7 @@ def create_npy():
                     np.save(number_file, Number_Rz)
                 
                 
-                for var_name in ['_Mdot_Rz', '_v_Rz', '_B_Rz']:
+                for var_name in ['_Mdot_Rz', '_v_Rz', '_B_Rz', '_j_Rz']:
                     pattern = f"{output_dir}/npy/*{galaxy_type}_{field}_{case}*{var_name}.npy"
                 
                     files = glob.glob(pattern)
