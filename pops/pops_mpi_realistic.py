@@ -429,7 +429,7 @@ def calculations(star_type):
                         j_file = output_dir + name2d + '_j_Rz.npy'
                         j_old = np.load(j_file)
                         j_new = j_old + j_Rz
-                        np.saje(j_file, j_new)
+                        np.save(j_file, j_new)
                         
                         
                         """ For Erosita + Roman """
