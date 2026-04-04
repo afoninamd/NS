@@ -80,8 +80,8 @@ Mbins = 10**np.linspace(2, 15, arr_size+1)# accretion rates in g/s
 Pbins = 10**np.linspace(0, 8, arr_size+1) # spin periods for the P-A transition
 
 """ Bins for the 2d histogram """
-R2bins = np.linspace(0, 20, 100+1)
-z2bins = np.linspace(0, 2, 100+1)
+R2bins = np.linspace(0, 20, 200+1)
+z2bins = np.linspace(0, 2, 200+1)
 
 def calculations(star_type):
    
@@ -98,7 +98,8 @@ def calculations(star_type):
     vals_per_core = N1 // csize
     remainder = N1 % csize
     data = pd.read_csv(output_dir + 'distribution_{}_{}.csv'.format(star_type, N1), sep=';')
-
+    data = data.reset_index(drop=True)
+    
     start_idx = crank * vals_per_core + min(crank, remainder)
     end_idx = start_idx + vals_per_core
     if crank < remainder:
@@ -283,13 +284,18 @@ def calculations(star_type):
                         T, f0, f1, c0, c1 = one_observability(t1, stages1, x1, y1, z1, B1, Mdot1,
                                                               nu, deltanu, cross, Seff)
                         # if len(c0[c0>1e-4]) > 0:
-                            
+                        # T = np.zeros(len(stages1))
+                        # f0 = np.zeros(len(stages1))
+                        # f1 = np.zeros(len(stages1))
+                        # c0 = np.zeros(len(stages1))
+                        # c1 = np.zeros(len(stages1))
                         weight1 = np.zeros(len(weight))
                         weight2 = np.zeros(len(weight))
                         weight1[::] = weight[::]
                         weight2[::] = weight[::]
                         weight1[c1[1:]<1e-1] = 0
                         weight2[c1[1:]<1e-2] = 0
+                        
                         
                         R = (x1[1:]**2+y1[1:]**2+z1[1:]**2)**0.5
                         Rcounts, _ = np.histogram(R, bins=Rbins, weights=weight)
@@ -429,7 +435,7 @@ def calculations(star_type):
                         j_file = output_dir + name2d + '_j_Rz.npy'
                         j_old = np.load(j_file)
                         j_new = j_old + j_Rz
-                        np.saje(j_file, j_new)
+                        np.save(j_file, j_new)
                         
                         
                         """ For Erosita + Roman """
