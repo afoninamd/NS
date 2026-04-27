@@ -28,12 +28,14 @@ def get_coordinates_velocities(pos: np.array, vel: np.array, t_end: float,
     """
     # s, kpc, km/s
     t, xyz, v_xyz = orbit(pos, vel, t_end, plot, number_of_dots=100_000)
-    orbital_period = find_orbital_period(t, xyz, v_xyz)
     
-    if np.isnan(orbital_period):
-        num = 1361
-    else:
-        num = max(1361, int(22*t_end/orbital_period)) # the number of steps
+    num = 1361
+    
+    # orbital_period = find_orbital_period(t, xyz, v_xyz)
+    # if np.isnan(orbital_period):
+    #     num = 1361
+    # else:
+    #     num = max(1361, int(22*t_end/orbital_period)) # the number of steps
     
     x = sp.interpolate.interp1d(t, xyz[0])
     y = sp.interpolate.interp1d(t, xyz[1])

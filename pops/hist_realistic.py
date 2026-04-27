@@ -21,13 +21,12 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from main.constants import arr_size, galaxy_age, Gyr, Myr, year
-from main.evolution import j_if_disc
 # full_path = '/home/afoninamd/Downloads/test_new_10k/'
 # full_path = '/home/afoninamd/Downloads/all_feathers/'
 # # full_path = '/home/afoninamd/Downloads/realistic2/'
 # path = '/home/afoninamd/Downloads/'
 # full_path = '/home/afoninamd/Documents/NS/project/pops/result/realistic/'
-full_path = '/home/afoninamd/Documents/NS/project/pops/result/together2/'
+full_path = '/home/afoninamd/Documents/NS/project/pops/result/together/disks1/'
 # res_name = 'realistic/'
 # path = '/home/afoninamd/Documents/project/pops/result/realistic/'
 res_name = ''
@@ -559,66 +558,6 @@ def plotrrebin(nrebin=arr_size,field='CF',  case='A', galaxy_type='simple'): # n
     
     fig.suptitle('{}_{}_{}'.format(galaxy_type, field, case))
     fig.savefig('counts_rebinned/{}_{}_{}.pdf'.format(galaxy_type, field, case), format='pdf')
-
-
-def MdotMap(galaxy_type='two_phase', field='ED', case='B'):
-    name2d = '{}_{}_{}'.format(galaxy_type, field, case)
-    output_dir = '/home/afoninamd/Documents/NS/project/pops/result/together2/'
-    number_file = output_dir + name2d + '_Number_Rz.npy'
-    mdot_file   = output_dir + name2d + '_Mdot_Rz.npy'
-    B_file = output_dir + name2d + '_B_Rz.npy'
-    v_file = output_dir + name2d + '_v_Rz.npy'
-    
-    Number_Rz = (np.load(number_file))
-    norm = np.sum(Number_Rz)
-    print(norm)
-    
-    Mdot_Rz = (np.load(mdot_file)) / norm #Number_Rz
-    B_Rz = (np.load(B_file)) / norm #Number_Rz
-    v_Rz = (np.load(v_file)) / norm #Number_Rz
-    
-    
-    # print(np.log10(B_Rz[0,0]), v_Rz[99,0]/1e5, np.log10(Mdot_Rz[0,0]))
-    # print(Mdot_Rz[Mdot_Rz!=0])
-    # print(Mdot_Rz[Number_Rz!=0])
-    
-    plt.figure(figsize=(8,6))
-    
-    J_Rz = j_if_disc(B_Rz, v_Rz, Mdot_Rz)
-    J_Rz[J_Rz<1] = np.nan
-    counts = np.log10(J_Rz.T)
-    
-    J_1d = J_Rz.reshape(-1)
-    print(len(J_1d[J_1d>1]))
-    
-    # counts = v_Rz.T / 1e5
-    # counts = np.log10(Mdot_Rz.T)
-    # plt.pcolormesh(R2bins, z2bins, Number_Rz.T, shading='auto') # Number_Rz also an interesting thing
-    cms = plt.pcolormesh(R2bins, z2bins, counts, shading='auto') # Number_Rz also an interesting thing
-    plt.xlabel('$R$, kpc')
-    plt.ylabel('$z$, kpc')
-    # plt.title('Mdot(R,z), [g/s]')
-    
-    cbar = plt.colorbar()
-    # cbar.set_label('log$_{10}\dot{M}$, [g/s]')
-    cbar.set_label('k (k > 1 -> disc)')
-    
-    # smoothed_counts = sp.ndimage.gaussian_filter(counts, sigma=1)
-    # levels = np.linspace(8,15, 20)
-    # cnt = plt.contour((R2bins[1:]+R2bins[:1])/2, (z2bins[1:]+z2bins[:1])/2, smoothed_counts, levels, colors='white', rasterized=True, linewidths=0.5)
-    #                     # vmin=vmin, vmax=vmax)
-    # mpl.rcParams["text.usetex"] = False
-    # try:
-    #     plt.clabel(cnt, levels, fontsize=10, fmt='%r')
-    # except:
-    #     pass
-    
-    plt.tight_layout()
-    plt.show()
-
-# MdotMap
-MdotMap(galaxy_type='two_phase', field='ED', case='B')
-# MdotMap(galaxy_type='simple', field='CF', case='A')
 
 """ HERE!!!! """
 # plotrrebin(case='B', field='ED', galaxy_type='two_phase')

@@ -260,3 +260,48 @@ def galaxy_phase(x, y, z, realisticMap=False):
     f[R>20] = 0
     
     return f
+
+
+def plot_map_f():
+    R = np.linspace(0, 20, 201)
+    z = np.linspace(0, 2, 201)
+    z2bins, R2bins = np.meshgrid(z, R)
+    
+    fig, ax = plt.subplots(figsize=(8,6))
+    counts = galaxy_phase(R2bins, z2bins*0, z2bins, realisticMap=False)
+    plt.pcolormesh(R2bins, z2bins, counts, shading='auto', cmap='magma')
+    
+    cbar = plt.colorbar()
+    plt.xlabel('$R$, kpc')
+    plt.ylabel('$z$, kpc')
+    cbar.set_label('filling factor (0-cold phase, 1-hot phase)')
+
+
+def plot_map_cold():
+    R = np.linspace(0, 20, 201)
+    z = np.linspace(0, 2, 201)
+    z2bins, R2bins = np.meshgrid(z, R)
+    
+    fig, ax = plt.subplots(figsize=(8,6))
+    counts = density_cold(R2bins, z2bins*0, z2bins, realisticMap=False)
+    plt.pcolormesh(R2bins, z2bins, np.log10(counts), shading='auto', cmap='magma')
+    
+    cbar = plt.colorbar()
+    plt.xlabel('$R$, kpc')
+    plt.ylabel('$z$, kpc')
+    cbar.set_label('log$_{10}$(N), number density of the cold medium')
+
+
+def plot_map_hot():
+    R = np.linspace(0, 20, 201)
+    z = np.linspace(0, 2, 201)
+    z2bins, R2bins = np.meshgrid(z, R)
+    
+    fig, ax = plt.subplots(figsize=(8,6))
+    counts = density_hot(R2bins, z2bins*0, z2bins)
+    plt.pcolormesh(R2bins, z2bins, np.log10(counts), shading='auto', cmap='magma')
+    
+    cbar = plt.colorbar()
+    plt.xlabel('$R$, kpc')
+    plt.ylabel('$z$, kpc')
+    cbar.set_label('log$_{10}$(N), number density of the hot medium')

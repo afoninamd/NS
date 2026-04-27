@@ -108,6 +108,11 @@ def calculations(star_type):
     if crank == 0:
         os.makedirs(output_dir + 'feather', exist_ok=True)
         os.makedirs(output_dir + 'temp', exist_ok=True)
+        os.makedirs(output_dir + 'disc', exist_ok=True)
+        for galaxy_type in ['simple', 'two_phase']:
+            for field in ['CF', 'ED']:
+                for case in ['A', 'B', 'C', 'D']:
+                    os.makedirs(output_dir + 'disc/{}_{}_{}'.format(field, case, galaxy_type), exist_ok=True)
     comm.Barrier()
         
     P = data['P']
@@ -230,10 +235,10 @@ def calculations(star_type):
             for field in ['CF', 'ED']:
                 for case in ['A', 'B', 'C', 'D']:
                     res = evolution_galaxy_iterations(P0, t, xyz, v_xyz, B0, field, case,
-                                                      plot=0, iterations=3,
+                                                      plot=0, iterations=1,
                                                       galaxy_type=galaxy_type)
-                    t1, P1, B1, stages1, v1, Mdot1, ph1, x1, y1, z1, vx1, vy1, vz1 = res
-                    z1 = np.abs(z1) # it is symmetric relative to the galactic plane anyway
+                    t1, P1, B1, stages1, v1, Mdot1, ph1, x1, y1, z11, vx1, vy1, vz1 = res
+                    z1 = np.abs(z11) # it is symmetric relative to the galactic plane anyway
                     
                         # for sfr in [True, False]:
                         #     name = output_dir + file_name + '_sfr{}'.format(sfr)
@@ -369,6 +374,29 @@ def calculations(star_type):
                         jtemp = j_if_disc(Btemp, vtemp, Mtemp)
                         jtemp[jtemp<1] = 0
                         jtemp[jtemp>1] = 1
+                        
+                        j_all = j_if_disc(B1, v1, Mdot1)
+                        if len(jtemp[jtemp==1]) > 0:
+                            df_one_track = pd.DataFrame({
+                                't': t1,
+                                'P': P1,
+                                'B': B1,
+                                'stages': stages1,
+                                'v': v1,
+                                'Mdot': Mdot1,
+                                'ph': ph1,
+                                'x': x1,
+                                'y': y1,
+                                'z': z11,
+                                'vx': vx1,
+                                'vy': vy1,
+                                'vz': vz1,
+                                'j':j_all, 'T': T, 'f0': f0, 'f1': f1, 'c0':c0,
+                                'c1':c1})
+                            float_cols = df_one_track.select_dtypes(include=['float64']).columns
+                            df_one_track[float_cols] = df_one_track[float_cols].astype('float32')
+                            df_one_track.to_csv(output_dir + 'disc/{}_{}_{}/{}.csv'.format(field, case, galaxy_type, i), sep=';')
+                        
                         jtemp_accretor = np.zeros(len(jtemp))
                         jtemp_accretor[::] = jtemp[::] * accretor_weight
                         jtemp_accretor[stages1[1:]!=3] = 0
