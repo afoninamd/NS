@@ -97,7 +97,8 @@ def calculations(star_type):
     
     vals_per_core = N1 // csize
     remainder = N1 % csize
-    data = pd.read_csv(output_dir + 'distribution_{}_{}.csv'.format(star_type, N1), sep=';')
+    data = pd.read_csv(output_dir + 'distribution_{}_{}.csv'.format(star_type, N1), sep=';',
+                   nrows=N//10) # !!!
     data = data.reset_index(drop=True)
     
     start_idx = crank * vals_per_core + min(crank, remainder)
@@ -301,75 +302,75 @@ def calculations(star_type):
                         weight1[c1[1:]<1e-1] = 0
                         weight2[c1[1:]<1e-2] = 0
                         
+                        """ Histograms """
+                        # R = (x1[1:]**2+y1[1:]**2+z1[1:]**2)**0.5
+                        # Rcounts, _ = np.histogram(R, bins=Rbins, weights=weight)
+                        # R2counts, _ = np.histogram(R, bins=Rbins, weights=weight2)
+                        # R1counts, _ = np.histogram(R, bins=Rbins, weights=weight1)
                         
-                        R = (x1[1:]**2+y1[1:]**2+z1[1:]**2)**0.5
-                        Rcounts, _ = np.histogram(R, bins=Rbins, weights=weight)
-                        R2counts, _ = np.histogram(R, bins=Rbins, weights=weight2)
-                        R1counts, _ = np.histogram(R, bins=Rbins, weights=weight1)
+                        # r = (x1[1:]**2+(y1[1:]-R0)**2+z1[1:]**2)**0.5
+                        # rcounts, _ = np.histogram(r, bins=rbins, weights=weight)
+                        # r2counts, _ = np.histogram(r, bins=rbins, weights=weight2)
+                        # r1counts, _ = np.histogram(r, bins=rbins, weights=weight1)
                         
-                        r = (x1[1:]**2+(y1[1:]-R0)**2+z1[1:]**2)**0.5
-                        rcounts, _ = np.histogram(r, bins=rbins, weights=weight)
-                        r2counts, _ = np.histogram(r, bins=rbins, weights=weight2)
-                        r1counts, _ = np.histogram(r, bins=rbins, weights=weight1)
-                        
-                        ztemp = z1[1:]
-                        zcounts, _ = np.histogram(ztemp, bins=zbins, weights=weight)
-                        z2counts, _ = np.histogram(ztemp, bins=zbins, weights=weight2)
-                        z1counts, _ = np.histogram(ztemp, bins=zbins, weights=weight1)
+                        # ztemp = z1[1:]
+                        # zcounts, _ = np.histogram(ztemp, bins=zbins, weights=weight)
+                        # z2counts, _ = np.histogram(ztemp, bins=zbins, weights=weight2)
+                        # z1counts, _ = np.histogram(ztemp, bins=zbins, weights=weight1)
                         
                         vtemp = v1[1:]
-                        vcounts, _ = np.histogram(vtemp, bins=vbins, weights=weight)
-                        v2counts, _ = np.histogram(vtemp, bins=vbins, weights=weight2)
-                        v1counts, _ = np.histogram(vtemp, bins=vbins, weights=weight1)
+                        # vcounts, _ = np.histogram(vtemp, bins=vbins, weights=weight)
+                        # v2counts, _ = np.histogram(vtemp, bins=vbins, weights=weight2)
+                        # v1counts, _ = np.histogram(vtemp, bins=vbins, weights=weight1)
                         
-                        Ttemp = T[1:]
-                        Tcounts, _ = np.histogram(Ttemp, bins=Tbins, weights=weight)
-                        T2counts, _ = np.histogram(Ttemp, bins=Tbins, weights=weight2)
-                        T1counts, _ = np.histogram(Ttemp, bins=Tbins, weights=weight1)
+                        # Ttemp = T[1:]
+                        # Tcounts, _ = np.histogram(Ttemp, bins=Tbins, weights=weight)
+                        # T2counts, _ = np.histogram(Ttemp, bins=Tbins, weights=weight2)
+                        # T1counts, _ = np.histogram(Ttemp, bins=Tbins, weights=weight1)
                         
                         Btemp = B1[1:]
-                        Bcounts, _ = np.histogram(Btemp, bins=Bbins, weights=weight)
-                        B2counts, _ = np.histogram(Btemp, bins=Bbins, weights=weight2)
-                        B1counts, _ = np.histogram(Btemp, bins=Bbins, weights=weight1)
+                        # Bcounts, _ = np.histogram(Btemp, bins=Bbins, weights=weight)
+                        # B2counts, _ = np.histogram(Btemp, bins=Bbins, weights=weight2)
+                        # B1counts, _ = np.histogram(Btemp, bins=Bbins, weights=weight1)
                         
-                        PA = P1[np.where(stages1==3)][0]
-                        Ptemp = np.zeros(len(P1[1:])) + PA
-                        weightP = np.zeros(len(weight)) + 1
-                        weightP = weightP / len(weightP)
-                        Pcounts, _ = np.histogram(Ptemp, bins=Pbins, weights=weightP)
+                        # PA = P1[np.where(stages1==3)][0]
+                        # Ptemp = np.zeros(len(P1[1:])) + PA
+                        # weightP = np.zeros(len(weight)) + 1
+                        # weightP = weightP / len(weightP)
+                        # Pcounts, _ = np.histogram(Ptemp, bins=Pbins, weights=weightP)
                         
-                        ttemp = t1[1:]
-                        accretor_weight = np.zeros(len(weight))
-                        accretor_weight[::] = weight[::]
-                        accretor_weight[stages1[1:]!=3] = 0
-                        tcounts, _ = np.histogram(ttemp, bins=tbins, weights=accretor_weight)
-                        t2counts, _ = np.histogram(ttemp, bins=tbins, weights=weight2)
-                        t1counts, _ = np.histogram(ttemp, bins=tbins, weights=weight1)
+                        # ttemp = t1[1:]
+                        # accretor_weight = np.zeros(len(weight))
+                        # accretor_weight[::] = weight[::]
+                        # accretor_weight[stages1[1:]!=3] = 0
+                        # tcounts, _ = np.histogram(ttemp, bins=tbins, weights=accretor_weight)
+                        # t2counts, _ = np.histogram(ttemp, bins=tbins, weights=weight2)
+                        # t1counts, _ = np.histogram(ttemp, bins=tbins, weights=weight1)
                         
                         Mtemp = Mdot1[1:]
-                        Mcounts, _ = np.histogram(Mtemp, bins=Mbins, weights=accretor_weight)
-                        M2counts, _ = np.histogram(Mtemp, bins=Mbins, weights=weight2)
-                        M1counts, _ = np.histogram(Mtemp, bins=Mbins, weights=weight1)
+                        # Mcounts, _ = np.histogram(Mtemp, bins=Mbins, weights=accretor_weight)
+                        # M2counts, _ = np.histogram(Mtemp, bins=Mbins, weights=weight2)
+                        # M1counts, _ = np.histogram(Mtemp, bins=Mbins, weights=weight1)
                         
-                        """ Two-d histogram for the NS position """
-                        Number_Rz, _, _ = np.histogram2d(R, ztemp, bins=[R2bins, z2bins], weights=accretor_weight)
-                        Number_Rz1, _, _ = np.histogram2d(R, ztemp, bins=[R2bins, z2bins], weights=weight1)
-                        Number_Rz2, _, _ = np.histogram2d(R, ztemp, bins=[R2bins, z2bins], weights=weight2)
-                        """ Two-d histogram for M_dot, B, v """
-                        Mtemp_accretor = np.zeros(len(Mtemp))
-                        Mtemp_accretor[::] = Mtemp[::] * accretor_weight
-                        Mtemp_accretor[stages1[1:]!=3] = 0
-                        Mdot_Rz, _, _ = np.histogram2d(R, ztemp, bins=[R2bins, z2bins], weights=Mtemp_accretor)
+                        # """ Two-d histogram for the NS position """
+                        # Number_Rz, _, _ = np.histogram2d(R, ztemp, bins=[R2bins, z2bins], weights=accretor_weight)
+                        # Number_Rz1, _, _ = np.histogram2d(R, ztemp, bins=[R2bins, z2bins], weights=weight1)
+                        # Number_Rz2, _, _ = np.histogram2d(R, ztemp, bins=[R2bins, z2bins], weights=weight2)
+                        # """ Two-d histogram for M_dot, B, v """
+                        # Mtemp_accretor = np.zeros(len(Mtemp))
+                        # Mtemp_accretor[::] = Mtemp[::] * accretor_weight
+                        # Mtemp_accretor[stages1[1:]!=3] = 0
+                        # Mdot_Rz, _, _ = np.histogram2d(R, ztemp, bins=[R2bins, z2bins], weights=Mtemp_accretor)
                         
-                        Btemp_accretor = np.zeros(len(Btemp))
-                        Btemp_accretor[::] = Btemp[::] * accretor_weight
-                        Btemp_accretor[stages1[1:]!=3] = 0
-                        B_Rz, _, _ = np.histogram2d(R, ztemp, bins=[R2bins, z2bins], weights=Btemp_accretor)
+                        # Btemp_accretor = np.zeros(len(Btemp))
+                        # Btemp_accretor[::] = Btemp[::] * accretor_weight
+                        # Btemp_accretor[stages1[1:]!=3] = 0
+                        # B_Rz, _, _ = np.histogram2d(R, ztemp, bins=[R2bins, z2bins], weights=Btemp_accretor)
                         
-                        vtemp_accretor = np.zeros(len(vtemp))
-                        vtemp_accretor[::] = vtemp[::] * accretor_weight
-                        vtemp_accretor[stages1[1:]!=3] = 0
-                        v_Rz, _, _ = np.histogram2d(R, ztemp, bins=[R2bins, z2bins], weights=vtemp_accretor)
+                        # vtemp_accretor = np.zeros(len(vtemp))
+                        # vtemp_accretor[::] = vtemp[::] * accretor_weight
+                        # vtemp_accretor[stages1[1:]!=3] = 0
+                        # v_Rz, _, _ = np.histogram2d(R, ztemp, bins=[R2bins, z2bins], weights=vtemp_accretor)
                         
                         jtemp = j_if_disc(Btemp, vtemp, Mtemp)
                         jtemp[jtemp<1] = 0
@@ -395,76 +396,82 @@ def calculations(star_type):
                                 'c1':c1})
                             float_cols = df_one_track.select_dtypes(include=['float64']).columns
                             df_one_track[float_cols] = df_one_track[float_cols].astype('float32')
-                            df_one_track.to_csv(output_dir + 'disc/{}_{}_{}/{}.csv'.format(field, case, galaxy_type, i), sep=';')
+                            
+                            if star_type == 'pulsar':
+                                star_type_name = ''
+                            else:
+                                star_type_name = '_magnetar'
+                            df_one_track.to_csv(output_dir + 'disc/{}_{}_{}/{}{}.csv'.format(field, case, galaxy_type, i, star_type_name), sep=';')
                         
-                        jtemp_accretor = np.zeros(len(jtemp))
-                        jtemp_accretor[::] = jtemp[::] * accretor_weight
-                        jtemp_accretor[stages1[1:]!=3] = 0
-                        j_Rz, _, _ = np.histogram2d(R, ztemp, bins=[R2bins, z2bins], weights=jtemp_accretor)
+                        # jtemp_accretor = np.zeros(len(jtemp))
+                        # jtemp_accretor[::] = jtemp[::] * accretor_weight
+                        # jtemp_accretor[stages1[1:]!=3] = 0
+                        # j_Rz, _, _ = np.histogram2d(R, ztemp, bins=[R2bins, z2bins], weights=jtemp_accretor)
                         
-                        f0counts, _ = np.histogram(f0[1:], bins=fbins, weights=weight)
-                        f1counts, _ = np.histogram(f1[1:], bins=fbins, weights=weight)
-                        c0counts, _ = np.histogram(c0[1:], bins=cbins, weights=weight)
-                        c1counts, _ = np.histogram(c1[1:], bins=cbins, weights=weight)
+                        # f0counts, _ = np.histogram(f0[1:], bins=fbins, weights=weight)
+                        # f1counts, _ = np.histogram(f1[1:], bins=fbins, weights=weight)
+                        # c0counts, _ = np.histogram(c0[1:], bins=cbins, weights=weight)
+                        # c1counts, _ = np.histogram(c1[1:], bins=cbins, weights=weight)
                         
-                        df = pd.DataFrame({'R': Rcounts, 'R-2': R2counts, 'R-1': R1counts,
-                                           'r': rcounts, 'r-2': r2counts, 'r-1': r1counts,
-                                           'z': zcounts, 'z-2': z2counts, 'z-1': z1counts,
-                                           'v': vcounts, 'v-2': v2counts, 'v-1': v1counts,
-                                           'T': Tcounts, 'T-2': T2counts, 'T-1': T1counts,
-                                           't': tcounts, 't-2': t2counts, 't-1': t1counts,
-                                           'B': Bcounts, 'B-2': B2counts, 'B-1': B1counts,
-                                           'M': Mcounts, 'M-2': M2counts, 'M-1': M1counts,
-                                           'P': Pcounts,
-                                           'f0': f0counts, 'f1': f1counts,
-                                           'c0': c0counts, 'c1': c1counts})
-                        float_cols = df.select_dtypes(include=['float64']).columns
-                        df[float_cols] = df[float_cols].astype('float32')
+                        # df = pd.DataFrame({'R': Rcounts, 'R-2': R2counts, 'R-1': R1counts,
+                        #                    'r': rcounts, 'r-2': r2counts, 'r-1': r1counts,
+                        #                    'z': zcounts, 'z-2': z2counts, 'z-1': z1counts,
+                        #                    'v': vcounts, 'v-2': v2counts, 'v-1': v1counts,
+                        #                    'T': Tcounts, 'T-2': T2counts, 'T-1': T1counts,
+                        #                    't': tcounts, 't-2': t2counts, 't-1': t1counts,
+                        #                    'B': Bcounts, 'B-2': B2counts, 'B-1': B1counts,
+                        #                    'M': Mcounts, 'M-2': M2counts, 'M-1': M1counts,
+                        #                    'P': Pcounts,
+                        #                    'f0': f0counts, 'f1': f1counts,
+                        #                    'c0': c0counts, 'c1': c1counts})
+                        # float_cols = df.select_dtypes(include=['float64']).columns
+                        # df[float_cols] = df[float_cols].astype('float32')
                         
-                        name = 'feather/{}_{}_{}_{}_{}_erosita'.format(crank, galaxy_type, field,
-                                                        case, star_type)
-                        df0 = pd.read_feather(output_dir + name + '.feather')
-                        feather.write_feather(df+df0, output_dir + name + '.feather')
+                        # name = 'feather/{}_{}_{}_{}_{}_erosita'.format(crank, galaxy_type, field,
+                        #                                 case, star_type)
+                        # df0 = pd.read_feather(output_dir + name + '.feather')
+                        # feather.write_feather(df+df0, output_dir + name + '.feather')
                         
                         
-                        """ two-d files """
-                        name2d = 'npy/{}_{}_{}_{}_{}'.format(crank, galaxy_type, field,
-                                                        case, star_type)
-                        number_file = output_dir + name2d + '_Number_Rz.npy'
-                        Number_old = np.load(number_file)
-                        Number_new = Number_old + Number_Rz
-                        np.save(number_file, Number_new)
+                        # """ two-d files """
+                        # name2d = 'npy/{}_{}_{}_{}_{}'.format(crank, galaxy_type, field,
+                        #                                 case, star_type)
+                        # number_file = output_dir + name2d + '_Number_Rz.npy'
+                        # Number_old = np.load(number_file)
+                        # Number_new = Number_old + Number_Rz
+                        # np.save(number_file, Number_new)
                         
-                        number_file = output_dir + name2d + '_Number_Rz1.npy'
-                        Number_old = np.load(number_file)
-                        Number_new = Number_old + Number_Rz1
-                        np.save(number_file, Number_new)
+                        # number_file = output_dir + name2d + '_Number_Rz1.npy'
+                        # Number_old = np.load(number_file)
+                        # Number_new = Number_old + Number_Rz1
+                        # np.save(number_file, Number_new)
                         
-                        number_file = output_dir + name2d + '_Number_Rz2.npy'
-                        Number_old = np.load(number_file)
-                        Number_new = Number_old + Number_Rz2
-                        np.save(number_file, Number_new)
+                        # number_file = output_dir + name2d + '_Number_Rz2.npy'
+                        # Number_old = np.load(number_file)
+                        # Number_new = Number_old + Number_Rz2
+                        # np.save(number_file, Number_new)
                         
-                        mdot_file = output_dir + name2d + '_Mdot_Rz.npy'
-                        Mdot_old = np.load(mdot_file)
-                        Mdot_new = Mdot_old + Mdot_Rz
-                        np.save(mdot_file, Mdot_new)
+                        # mdot_file = output_dir + name2d + '_Mdot_Rz.npy'
+                        # Mdot_old = np.load(mdot_file)
+                        # Mdot_new = Mdot_old + Mdot_Rz
+                        # np.save(mdot_file, Mdot_new)
                         
-                        B_file = output_dir + name2d + '_B_Rz.npy'
-                        B_old = np.load(B_file)
-                        B_new = B_old + B_Rz
-                        np.save(B_file, B_new)
+                        # B_file = output_dir + name2d + '_B_Rz.npy'
+                        # B_old = np.load(B_file)
+                        # B_new = B_old + B_Rz
+                        # np.save(B_file, B_new)
                         
-                        v_file = output_dir + name2d + '_v_Rz.npy'
-                        v_old = np.load(v_file)
-                        v_new = v_old + v_Rz
-                        np.save(v_file, v_new)
+                        # v_file = output_dir + name2d + '_v_Rz.npy'
+                        # v_old = np.load(v_file)
+                        # v_new = v_old + v_Rz
+                        # np.save(v_file, v_new)
                         
-                        j_file = output_dir + name2d + '_j_Rz.npy'
-                        j_old = np.load(j_file)
-                        j_new = j_old + j_Rz
-                        np.save(j_file, j_new)
+                        # j_file = output_dir + name2d + '_j_Rz.npy'
+                        # j_old = np.load(j_file)
+                        # j_new = j_old + j_Rz
+                        # np.save(j_file, j_new)
                         
+                        """ Comment ended """
                         
                         """ For Erosita + Roman """
                         # roman = np.zeros(len(x1))
