@@ -20,6 +20,8 @@ from pops.observability import flux_to_counts_constants, one_observability
 from main.evolution import gett, star_formation_history, j_if_disc
 from main.constants import galaxy_age, N, R0, arr_size, Gyr
 
+from pathlib import Path
+
 output_dir = 'result/realistic/'
 os.makedirs(output_dir + 'npy', exist_ok=True)
 
@@ -83,6 +85,19 @@ Pbins = 10**np.linspace(0, 8, arr_size+1) # spin periods for the P-A transition
 R2bins = np.linspace(0, 20, 200+1)
 z2bins = np.linspace(0, 2, 200+1)
 
+def remove_small_i_files(loc_dir, limit=1_000_000):
+    disc = Path(loc_dir)# / 'disc'
+    if not disc.exists():
+        return
+    for csv_file in disc.glob('*.csv'):
+        try:
+            i_val = int(csv_file.stem)
+        except ValueError:
+            continue
+        if i_val < limit:
+            csv_file.unlink()
+
+
 def calculations(star_type):
    
     """
@@ -113,6 +128,7 @@ def calculations(star_type):
         for galaxy_type in ['simple', 'two_phase']:
             for field in ['CF', 'ED']:
                 for case in ['A', 'B', 'C', 'D']:
+                    remove_small_i_files(output_dir+'disc/{}_{}_{}/'.format(field, case, galaxy_type), limit=1_000_000) # !!!!
                     os.makedirs(output_dir + 'disc/{}_{}_{}'.format(field, case, galaxy_type), exist_ok=True)
     comm.Barrier()
         
