@@ -22,7 +22,7 @@ from astropy.cosmology import default_cosmology
 mw = gp.MilkyWayPotential()
 # help(gp.MilkyWayPotential) # type ?? after the function in the terminal to find out the details
 
-N = 10000  # the number of tracks overall
+N = 1000000  # the number of tracks overall
 arr_size = 1000 # CHANGE IT TO 1000
 
 """ Physical constants """
@@ -32,9 +32,10 @@ M_sun = const.M_sun.cgs.value          # solar mass,                 [g]
 M_NS = 1.4 * M_sun
 R_sun = const.R_sun.cgs.value
 k_B = const.k_B.cgs.value
-e = 4,8032067991251e-10
+e = 4.8032067991251e-10
 h = const.h.cgs.value
 m_p = const.m_p.cgs.value              # proton mass,                [g]
+m_e = const.m_e.cgs.value              # electron mass,                [g]
 AU = 1.496e+13                         # astronomical unit,          [cm]
 day = 24 * 60 * 60                     # [s]
 year = 365.24219878 * day              # year,                       [s]
