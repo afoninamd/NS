@@ -166,7 +166,7 @@ def create_histogram_data(star_type):
                             continue
                         vals = np.array(df[col])
                         # Use numpy histogram, add to accumulator
-                        cnt, _ = np.histogram(vals, bins=np.array(edges))
+                        cnt, _ = np.histogram(vals, bins=np.array(edges), weights=weight)
                         accum[col] += cnt
                         
                         lo, hi = edges[0], edges[-1]
