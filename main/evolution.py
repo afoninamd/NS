@@ -14,7 +14,7 @@ from time import time
 from main.model import Object
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
-from main.constants import galaxy_age, year, G, M_NS, Gyr, R_NS
+from main.constants import galaxy_age, year, G, M_NS, Gyr, R_NS, m_p, R_t, v_t
 t_Ohm = 1e6 * year
 
 
@@ -296,9 +296,6 @@ def test_evolution():
 
 
 def j_if_disc(B, v, M_dot):
-    R_t = 2e20
-    v_t = 10e5
-    
     R_G = 2 * G * M_NS / v**2
     # M_dot = np.pi * R_G**2 * rho * v
     mu = B * R_NS**3
@@ -314,6 +311,31 @@ def j_if_disc(B, v, M_dot):
     return j_t / j_K  # exceeds 1 -> disc
 
 
+def check_j_dependence():
+    B = 1e12
+    n = 1
+    v = 1e6
+    R_G = 2 * G * M_NS/v**2
+    Mdot = np.pi * R_G**2 * n * m_p * v
+    j1 = j_if_disc(B, v, Mdot)
+    
+    v = 1e7
+    R_G = 2 * G * M_NS/v**2
+    Mdot = np.pi * R_G**2 * n * m_p * v
+    j2 = j_if_disc(B, v, Mdot)
+    
+    power = -65/21
+    print("= 1 if the power is right: ", (j2/j1)/10**power)
+    
+    v = 1e5
+    j = np.linspace(0,20)
+    R_G = 2 * G * M_NS/ v**2
+    j = j * (R_G/R_t)**(1/6)
+    plt.plot(j)
+    print(len(j[j>1]))
+    
+    
+# check_j_dependence()
 """
 From old binary code
 """

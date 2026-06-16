@@ -15,7 +15,7 @@ import pandas as pd
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from main.evolution import star_formation_history #, gett, j_if_disc
-from main.constants import galaxy_age #, N, R0, Gyr, G, M_sun, R_NS, m_e, m_p, e
+from main.constants import galaxy_age, G, M_NS, R_t #, N, R0, Gyr, G, M_sun, R_NS, m_e, m_p, e
 
 comm = MPI.COMM_WORLD
 crank = comm.Get_rank()
@@ -153,6 +153,11 @@ def create_histogram_data(star_type):
                     """ Calculating weights """
                     t = np.array(df['t'])
                     j = np.array(df['j'])
+                    """ A different turbulence model -> different j """
+                    v = np.array(df['v'])
+                    R_G = 2 * G * M_NS/ v**2
+                    j = j * (R_G/R_t)**(1/6)
+                    
                     weight = np.zeros(len(t))
                     weight[1:] = t[1:] - t[:-1]
                     weight = weight * star_formation_history(t)

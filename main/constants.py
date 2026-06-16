@@ -75,6 +75,8 @@ H_0 = cosmo.H(0.0).value * 1e5 / 1e6 / pc
 # c_s_cold = (k_B*8000/m_p)**0.5
 c_s_hot = 100e5
 c_s_cold = 10e5
+R_t = 2e20
+v_t = 10e5
 # kpc = 1e3*pc
 # print(c_s_hot/1e5, c_s_cold/1e5)
 
